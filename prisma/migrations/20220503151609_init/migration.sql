@@ -1,0 +1,15 @@
+-- CreateTable
+CREATE TABLE `Users` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `phone` VARCHAR(255) NOT NULL,
+    `passwd` VARCHAR(255) NOT NULL,
+    `slat` VARCHAR(6) NOT NULL,
+    `blance` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    `invite` VARCHAR(6) NOT NULL,
+    `role` VARCHAR(255) NOT NULL DEFAULT 'user',
+    `status` INTEGER NOT NULL DEFAULT 1,
+    `createAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updateAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
