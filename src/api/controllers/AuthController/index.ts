@@ -1,25 +1,32 @@
-import { Api, Post, Validate } from "@midwayjs/hooks";
+import { Api, Post, useContext, Validate } from "@midwayjs/hooks";
 import { sendCode } from "@/api/services/SmsService";
 import { onFaild, onResult, RandomCode, RandomLetter } from "@/api/utils/tools";
 import { z } from "zod";
 import { ZodForget, ZodLogin, ZodRegister, ZodSendCode } from "./schema";
 import { prisma } from "@/api/prisma";
 import dayjs from "dayjs";
-import { SHA256 } from "crypto-js";
 import _ from "lodash";
 import { Users } from "@prisma/client";
+import { Context } from "@midwayjs/koa";
 
 const Path = (code: string) => `/api/auth/${code}`;
 // 登录
 export const AuthUserLogin = Api(
   Post(Path("login")),
   Validate(ZodLogin),
-  async ({ phone, passwd }: z.infer<typeof ZodLogin>): OnResult<Omit<Users, "passwd" | "slat">> => {
+  async ({ phone, passwd }: z.infer<typeof ZodLogin>): OnResult<Omit<Users, "passwd">> => {
+    // 信息认证
     const user = await prisma.users.findUnique({ where: { phone } });
     if (!user) throw new onFaild("该手机号码未注册");
-    const slatPasswd = SHA256(`${user.slat}${passwd}${user.slat}`).toString();
-    if (slatPasswd !== user.passwd) throw new onFaild("登录密码错误");
-    return onResult(_.omit(user, ["passwd", "slat"]));
+    if (passwd !== user.passwd) throw new onFaild("登录密码错误");
+
+    // cookie 设置
+    const ctx = useContext<Context>();
+    const expires = dayjs().add(24, "h").toDate();
+    const cookie = JSON.stringify({ id: user.id, status: user.status, role: user.role, expires });
+    ctx.cookies.set("token", cookie, { encrypt: true, expires });
+
+    return onResult(_.omit(user, ["passwd"]));
   }
 );
 
@@ -32,7 +39,7 @@ export const AuthUserRegister = Api(
     code,
     passwd,
     repasswd,
-  }: z.infer<typeof ZodRegister>): OnResult<Omit<Users, "passwd" | "slat">> => {
+  }: z.infer<typeof ZodRegister>): OnResult<Omit<Users, "passwd">> => {
     if (passwd !== repasswd) throw new onFaild("两次密码输入不一致");
 
     // 注册检测
@@ -48,20 +55,14 @@ export const AuthUserRegister = Api(
     if (smsCode.code !== code) throw new onFaild("验证码错误，请重新输入");
 
     // 注册信息
-    const slat = RandomLetter(6);
     const user = await prisma.users.create({
-      data: {
-        phone,
-        passwd: SHA256(`${slat}${passwd}${slat}`).toString(),
-        slat,
-        invite: RandomLetter(6),
-      },
+      data: { phone, passwd, invite: RandomLetter(6) },
     });
     if (!user) throw new onFaild("注册失败，请尝试重新注册");
 
     // 注册成功，删除验证码
     await prisma.smsCode.delete({ where: { id: smsCode.id } });
-    return onResult(_.omit(user, ["passwd", "slat"]));
+    return onResult(_.omit(user, ["passwd"]));
   }
 );
 
@@ -111,16 +112,12 @@ export const AuthUserForget = Api(
     if (smsCode.code !== code) throw new onFaild("验证码错误，请重新输入");
 
     // 密码更新
-    const slat = RandomLetter(6);
     const user = await prisma.users.update({
       where: { phone },
-      data: {
-        passwd: SHA256(`${slat}${passwd}${slat}`).toString(),
-        slat,
-      },
+      data: { passwd },
     });
     if (!user) throw new onFaild("重置密码失败，请重新尝试");
     await prisma.smsCode.delete({ where: { id: smsCode.id } });
-    return onResult(_.omit(user, ["passwd", "slat"]));
+    return onResult(_.omit(user, ["passwd"]));
   }
 );

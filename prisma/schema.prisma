@@ -29,7 +29,6 @@ model Users {
   id       Int      @id @default(autoincrement())
   phone    String   @unique @db.VarChar(255)
   passwd   String   @db.VarChar(255)
-  slat     String   @db.VarChar(6)
   blance   Decimal  @default(0.00) @db.Decimal(10, 2)
   invite   String   @db.VarChar(6)
   role     String   @default("user") @db.VarChar(255)
