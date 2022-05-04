@@ -1,19 +1,22 @@
+import { Password, Phone } from "@/components/form";
 import router from "@/routers";
-import { Button, Checkbox, Divider, Form, Link } from "@arco-design/web-vue";
+import useUserStore from "@/store/useUser";
+import { Button, Checkbox, Divider, Form, FormItem, Link } from "@arco-design/web-vue";
 import { defineComponent, reactive } from "vue";
-import { FormPhone, FormPasswd } from "./component";
 import { LoginRules } from "./rules";
 
 export default defineComponent(() => {
   const formData = reactive({
-    phone: "",
-    passwd: "",
+    phone: "18755787880",
+    passwd: "2333",
   });
 
+  const useUser = useUserStore();
+
   // 提交表单
-  const handleSubmit = ({ values, errors }) => {
+  const handleSubmit = async ({ values, errors }) => {
     if (errors) return;
-    console.log(values);
+    useUser.Login(formData);
   };
 
   const render = () => {
@@ -26,13 +29,15 @@ export default defineComponent(() => {
           rules={LoginRules}
           onSubmit={handleSubmit}
         >
-          <FormPhone vModel={formData.phone} />
-          <FormPasswd vModel={formData.passwd} />
+          <FormItem label="登录手机" field="phone" hideAsterisk>
+            <Phone vModel={formData.phone} />
+          </FormItem>
+          <FormItem label="登录手机" field="passwd" hideAsterisk>
+            <Password vModel={formData.passwd} />
+          </FormItem>
           <div class="flex items-center justify-between -ml-1 mb-4">
             <Checkbox>记住我</Checkbox>
-            <Link onClick={() => router.push({ name: "Forget" })}>
-              找回密码
-            </Link>
+            <Link onClick={() => router.push({ name: "Forget" })}>找回密码</Link>
           </div>
           <Button type="primary" class={"!h-10"} long htmlType="submit">
             登 录

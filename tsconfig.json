@@ -10,14 +10,20 @@
     "esModuleInterop": true,
     "lib": ["esnext", "dom"],
     "skipLibCheck": true,
-    "types": [],
     "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"]
     },
     "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/App.jsx", "src/**/*.css"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/App.jsx",
+    "src/**/*.css"
+  ],
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs"

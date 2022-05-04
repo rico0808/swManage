@@ -1,8 +1,15 @@
+import type { Context } from "@midwayjs/koa";
+import type { Dayjs } from "dayjs";
+
 interface Session {
   expires: string | number | Date | Dayjs;
   id: number;
   status: number;
   role: number;
+}
+
+interface Context extends Context {
+  session: Session;
 }
 
 interface Res<T> {

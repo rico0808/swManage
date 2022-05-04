@@ -1,12 +1,12 @@
 import { createConfiguration, hooks } from "@midwayjs/hooks";
 import * as Koa from "@midwayjs/koa";
-import { ErrorIntercept } from "./middleware/middleware";
+import { CheckCookie, ErrorIntercept } from "./middleware/middleware";
 
 /**
  * setup midway server
  */
 export default createConfiguration({
-  imports: [Koa, hooks({ middleware: [ErrorIntercept] })],
+  imports: [Koa, hooks({ middleware: [ErrorIntercept, CheckCookie] })],
   importConfigs: [
     {
       default: {

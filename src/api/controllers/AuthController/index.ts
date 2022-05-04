@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import _ from "lodash";
 import { Users } from "@prisma/client";
 import { Context } from "@midwayjs/koa";
+import type { OnResult } from "@/types";
 
 const Path = (code: string) => `/api/auth/${code}`;
 // 登录

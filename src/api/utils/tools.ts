@@ -1,3 +1,5 @@
+import type { Res } from "@/types";
+
 export const onResult = <T>(data: T, msg = "奥力给！"): Res<T> => {
   return { data, msg };
 };

@@ -3,6 +3,7 @@ import { Context } from "@midwayjs/koa";
 import dayjs from "dayjs";
 import { isNumber } from "lodash";
 import { onFaild, onResult } from "@/api/utils/tools";
+import type { Session } from "@/types";
 
 // 统一错误处理
 export const ErrorIntercept = async (next: Function) => {

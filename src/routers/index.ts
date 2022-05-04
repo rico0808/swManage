@@ -63,6 +63,7 @@ const routes: RouteRecordRaw[] = [
             meta: {
               label: "控制台",
               isPriavte: true,
+              showMenu: true,
               roles: ["user", "dealer", "admin"],
             },
             component: () => import("@/views/user/dashboard"),
@@ -73,6 +74,7 @@ const routes: RouteRecordRaw[] = [
             meta: {
               label: "我的服务",
               isPriavte: true,
+              showMenu: true,
               roles: ["user", "dealer", "admin"],
             },
             component: () => import("@/views/user/myServices"),
@@ -106,21 +108,12 @@ const routes: RouteRecordRaw[] = [
         redirect: { name: "DealerDashboard" },
         children: [
           {
-            name: "_Dashboard",
-            path: "dashboard",
-            meta: {
-              label: "控制台",
-              isPriavte: true,
-              roles: ["dealer", "admin"],
-            },
-            component: () => import("@/views/dealer/dashboard"),
-          },
-          {
             name: "_Products",
             path: "products",
             meta: {
               label: "商品列表",
               isPriavte: true,
+              showMenu: true,
               roles: ["dealer", "admin"],
             },
             component: () => import("@/views/dealer/myProducts"),
@@ -131,6 +124,7 @@ const routes: RouteRecordRaw[] = [
             meta: {
               label: "客户列表",
               isPriavte: true,
+              showMenu: true,
               roles: ["dealer", "admin"],
             },
             component: () => import("@/views/dealer/myClients"),
@@ -141,6 +135,7 @@ const routes: RouteRecordRaw[] = [
             meta: {
               label: "销售记录",
               isPriavte: true,
+              showMenu: true,
               roles: ["dealer", "admin"],
             },
             component: () => import("@/views/dealer/mySales"),
@@ -161,7 +156,8 @@ const routes: RouteRecordRaw[] = [
             meta: {
               label: "服务器管理",
               isPriavte: true,
-              roles: ["admin"],
+              showMenu: true,
+              roles: ["dealer", "admin"],
             },
             component: () => import("@/views/dealer/myServers"),
           },
@@ -171,7 +167,8 @@ const routes: RouteRecordRaw[] = [
             meta: {
               label: "节点列表",
               isPriavte: true,
-              roles: ["admin"],
+              showMenu: true,
+              roles: ["dealer", "admin"],
             },
             component: () => import("@/views/dealer/myNodes"),
           },
@@ -181,7 +178,7 @@ const routes: RouteRecordRaw[] = [
             meta: {
               label: "登录记录",
               isPriavte: true,
-              roles: ["admin"],
+              roles: ["dealer", "admin"],
             },
             component: () => import("@/views/dealer/myNodes"),
           },

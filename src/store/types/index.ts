@@ -1,7 +1,5 @@
-interface Profile {
-  role: string;
-}
+import { Users } from "@prisma/client";
 
 export interface UserStore {
-  profile?: Profile | null;
+  profile?: Omit<Users, "passwd"> | null;
 }
