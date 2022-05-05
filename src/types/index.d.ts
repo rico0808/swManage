@@ -5,7 +5,9 @@ interface Session {
   expires: string | number | Date | Dayjs;
   id: number;
   status: number;
-  role: number;
+  role: string;
+  isDealer: boolean;
+  isAdmin: boolean;
 }
 
 interface Context extends Context {

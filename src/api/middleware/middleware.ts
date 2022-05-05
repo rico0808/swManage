@@ -1,9 +1,8 @@
 import { useContext, useLogger } from "@midwayjs/hooks";
-import { Context } from "@midwayjs/koa";
 import dayjs from "dayjs";
 import { isNumber } from "lodash";
 import { onFaild, onResult } from "@/api/utils/tools";
-import type { Session } from "@/types";
+import type { Context, Session } from "@/types";
 
 // 统一错误处理
 export const ErrorIntercept = async (next: Function) => {
@@ -59,4 +58,34 @@ export const CheckCookie = async (next: Function) => {
 
   ctx.session = payload;
   await next();
+};
+
+export const checkPermission = async (next: Function) => {
+  const { session } = useContext<Context>();
+  const roles = ["admin", "dealer"];
+  if (roles.includes(session.role)) {
+    session.isAdmin = session.role === "admin";
+    session.isDealer = session.role === "dealer";
+    await next();
+  } else {
+    throw new onFaild("别点了，权限不足", 403);
+  }
+};
+
+export const isDealer = async (next: Function) => {
+  const { session } = useContext<Context>();
+  if (session.isDealer) {
+    await next();
+  } else {
+    throw new onFaild("您不是代理，无法操作", 403);
+  }
+};
+
+export const isAdmin = async (next: Function) => {
+  const { session } = useContext<Context>();
+  if (session.isAdmin) {
+    await next();
+  } else {
+    throw new onFaild("只有尊贵的管理员才可以操作", 403);
+  }
 };
