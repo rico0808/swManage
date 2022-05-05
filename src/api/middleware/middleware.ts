@@ -1,6 +1,6 @@
 import { useContext, useLogger } from "@midwayjs/hooks";
 import dayjs from "dayjs";
-import { isNumber } from "lodash";
+import _, { isNumber } from "lodash";
 import { onFaild, onResult } from "@/api/utils/tools";
 import type { Context, Session } from "@/types";
 
@@ -60,7 +60,7 @@ export const CheckCookie = async (next: Function) => {
   await next();
 };
 
-export const checkPermission = async (next: Function) => {
+export const CheckPermission = async (next: Function) => {
   const { session } = useContext<Context>();
   const roles = ["admin", "dealer"];
   if (roles.includes(session.role)) {
@@ -74,6 +74,7 @@ export const checkPermission = async (next: Function) => {
 
 export const isDealer = async (next: Function) => {
   const { session } = useContext<Context>();
+  if (_.isUndefined(session.isDealer)) await CheckCookie(next);
   if (session.isDealer) {
     await next();
   } else {
@@ -83,6 +84,7 @@ export const isDealer = async (next: Function) => {
 
 export const isAdmin = async (next: Function) => {
   const { session } = useContext<Context>();
+  if (_.isUndefined(session.isAdmin)) await CheckCookie(next);
   if (session.isAdmin) {
     await next();
   } else {

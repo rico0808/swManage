@@ -1,4 +1,4 @@
-import { Button, Input } from "@arco-design/web-vue";
+import { Button, Input, InputNumber } from "@arco-design/web-vue";
 
 type Props = { vModel: any; placeholder?: string };
 export const Phone = (props: Props) => {

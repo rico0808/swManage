@@ -5,7 +5,7 @@ const ZodBaseGoods = z.object({
   name: zString("商品名称"),
   traffic: zNumber("流量大小"),
   days: zNumber("有效天数"),
-  price: zNumber("商品价格"),
+  price: zString("商品价格"),
   status: zNumber("商品状态"),
 });
 

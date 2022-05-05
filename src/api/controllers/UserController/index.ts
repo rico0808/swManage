@@ -9,7 +9,6 @@ import { CheckCookie } from "@/api/middleware/middleware";
 export const config: ApiConfig = {
   middleware: [CheckCookie],
 };
-
 const Path = (code: string) => `/api/user/${code}`;
 
 // 用户信息

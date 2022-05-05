@@ -1,3 +1,4 @@
+import { TableColumnData } from "@arco-design/web-vue";
 import type { Context } from "@midwayjs/koa";
 import type { Dayjs } from "dayjs";
 
@@ -28,3 +29,5 @@ interface ResPage<T> {
   msg: string;
 }
 type OnPage<T> = Promise<ResPage<T>>;
+
+type TableSlot<T> = { record: T; column: TableColumnData; rowIndex: number };

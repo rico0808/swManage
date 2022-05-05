@@ -29,3 +29,11 @@ export const RandomLetter = (length: number) => {
   }
   return result.join("");
 };
+
+export const toGB = (val: number) => {
+  return Number((val / 1024 / 1024).toFixed(2));
+};
+
+export const toKB = (val: number) => {
+  return ~~Number(val * 1024 * 1024);
+};

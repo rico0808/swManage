@@ -13,6 +13,9 @@ const useUserStore = defineStore("User", () => {
   const profile = ref<Omit<Users, "passwd">>();
   const role = computed(() => profile.value?.role || "user");
   const isLogin = useStorage("isLogin", false);
+  const isAdmin = computed(() => role.value === "admin");
+  const isDealer = computed(() => role.value === "dealer");
+  const isUser = computed(() => role.value === "user");
 
   // 获取用户信息
   const GetProfile = async () => {
@@ -30,7 +33,7 @@ const useUserStore = defineStore("User", () => {
     router.push({ name: "UserDashboard" });
   };
 
-  return { profile, GetProfile, Login, role, isLogin };
+  return { profile, GetProfile, Login, role, isLogin, isAdmin, isDealer, isUser };
 });
 
 export default useUserStore;
