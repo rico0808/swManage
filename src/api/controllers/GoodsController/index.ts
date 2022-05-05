@@ -6,7 +6,7 @@ import { OnPage, OnResult } from "@/types";
 import { Api, ApiConfig, Middleware, Post, Validate } from "@midwayjs/hooks";
 import { Goods } from "@prisma/client";
 import { z } from "zod";
-import { ZodCreateGoods } from "./schema";
+import { ZodCreateGoods, ZodUpdateGoods } from "./schema";
 
 export const config: ApiConfig = {
   middleware: [CheckCookie, checkPermission],
@@ -56,11 +56,15 @@ export const GoodsDeleteGoods = Api(
 export const GoodsUpdateGoods = Api(
   Post(Path("update")),
   Middleware(isAdmin),
-  Validate(zID),
-  async ({ id }: z.infer<typeof zID>): OnResult<Goods> => {
+  Validate(ZodUpdateGoods),
+  async (data: z.infer<typeof ZodUpdateGoods>): OnResult<Goods> => {
+    const { name, traffic, days, status, price, id } = data;
     const hasGoods = await prisma.goods.findUnique({ where: { id } });
-    if (!hasGoods) throw new onFaild("删除失败，商品不存在");
-    const goods = await prisma.goods.delete({ where: { id } });
+    if (!hasGoods) throw new onFaild("编辑失败，商品不存在");
+    const goods = await prisma.goods.update({
+      where: { id },
+      data: { name, traffic, days, status, price },
+    });
     return onResult(goods);
   }
 );
