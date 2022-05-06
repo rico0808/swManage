@@ -7,8 +7,8 @@ import { LoginRules } from "./rules";
 
 export default defineComponent(() => {
   const formData = reactive({
-    phone: "18755787880",
-    passwd: "2333",
+    phone: "",
+    passwd: "",
   });
 
   const useUser = useUserStore();
@@ -30,10 +30,10 @@ export default defineComponent(() => {
           onSubmit={handleSubmit}
         >
           <FormItem label="登录手机" field="phone" hideAsterisk>
-            <Phone vModel={formData.phone} />
+            <Phone v-model={formData.phone} />
           </FormItem>
           <FormItem label="登录手机" field="passwd" hideAsterisk>
-            <Password vModel={formData.passwd} />
+            <Password v-model={formData.passwd} />
           </FormItem>
           <div class="flex items-center justify-between -ml-1 mb-4">
             <Checkbox>记住我</Checkbox>
