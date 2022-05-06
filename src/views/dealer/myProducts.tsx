@@ -7,7 +7,6 @@ import {
 import usePagination from "@/hooks/usePagination";
 import useUserStore from "@/store/useUser";
 import { TableSlot } from "@/types";
-import { toGB } from "@/utils/tools";
 import {
   Button,
   Col,
@@ -23,9 +22,9 @@ import {
   Row,
   Select,
   Table,
-  TableColumnData,
   Tag,
 } from "@arco-design/web-vue";
+import type { TableColumnData, FieldRule } from "@arco-design/web-vue";
 import { Goods } from "@prisma/client";
 import _ from "lodash";
 import { storeToRefs } from "pinia";
@@ -42,42 +41,51 @@ export default defineComponent(() => {
   const formData = reactive({
     name: "",
     sku: "",
-    price: "0.00",
-    traffic: 0,
-    days: 0,
+    price: "",
+    traffic: null,
+    days: null,
     status: 1,
   });
 
   const handleCreateGoods = (done: Function) => {
-    (async () => {
+    formRef.value.validate(async (errors) => {
+      if (errors) return done(false);
       loading.value = true;
       const res = await GoodsCreateGoods(formData);
-      if (!res) return done(false);
-      await reload();
-      Message.success("添加商品成功");
-      done();
+      if (res) {
+        await reload();
+        Message.success("添加商品成功");
+        done();
+      } else {
+        done(false);
+      }
       loading.value = false;
-    })();
+    });
   };
 
   const handleUpdateGoods = (done: Function) => {
-    (async () => {
+    formRef.value.validate(async (errors) => {
+      if (errors) return done(false);
       loading.value = true;
       const res = await GoodsUpdateGoods(formData);
-      if (!res) return done(false);
-      await reload();
-      Message.success("编辑商品成功");
-      done();
+      if (res) {
+        await reload();
+        Message.success("编辑商品成功");
+        done();
+      } else {
+        done(false);
+      }
       loading.value = false;
-    })();
+    });
   };
 
   const handleDeleteGoods = async (id: number) => {
     loading.value = true;
     const res = await GoodsDeleteGoods({ id });
-    if (!res) return;
-    await reload();
-    Message.success("删除商品成功");
+    if (res) {
+      await reload();
+      Message.success("删除商品成功");
+    }
     loading.value = false;
   };
 
@@ -93,6 +101,15 @@ export default defineComponent(() => {
   if (isAdmin.value) {
     columns.push({ title: "操作", slotName: "actions", align: "center", width: 170 });
   }
+
+  const rules: Record<string, FieldRule<any>[]> = {
+    name: [{ required: true, message: "请输入商品名称" }],
+    sku: [{ required: true, message: "请输入商品SKU" }],
+    price: [{ required: true, message: "请输入商品价格" }],
+    traffic: [{ required: true, message: "请输入可用流量" }],
+    days: [{ required: true, message: "请输入有效天数" }],
+    status: [{ required: true, message: "请选择商品状态" }],
+  };
 
   const render = () => {
     return (
@@ -150,24 +167,24 @@ export default defineComponent(() => {
         <Modal
           v-model:visible={formModal.value}
           width={500}
-          title="添加商品"
+          title={formEdit.value ? "编辑商品" : "添加商品"}
           onBeforeOk={formEdit.value ? handleUpdateGoods : handleCreateGoods}
           onBeforeClose={() => formRef.value.resetFields()}
         >
-          <Form model={formData} layout="vertical" ref={formRef}>
+          <Form model={formData} layout="vertical" ref={formRef} rules={rules}>
             <Row gutter={16}>
               <Col span={8}>
-                <FormItem label="商品名称" field="name">
+                <FormItem label="商品名称" field="name" hideAsterisk>
                   <Input v-model={formData.name} placeholder="小鱼包" />
                 </FormItem>
               </Col>
               <Col span={8}>
-                <FormItem label="商品SKU" field="sku">
+                <FormItem label="商品SKU" field="sku" hideAsterisk>
                   <Input v-model={formData.sku} placeholder="000000" />
                 </FormItem>
               </Col>
               <Col span={8}>
-                <FormItem label="价格" field="price">
+                <FormItem label="价格" field="price" hideAsterisk>
                   <Input
                     v-model={formData.price}
                     placeholder="0.00"
@@ -178,7 +195,7 @@ export default defineComponent(() => {
             </Row>
             <Row gutter={16}>
               <Col span={8}>
-                <FormItem label="可用流量" field="traffic">
+                <FormItem label="可用流量" field="traffic" hideAsterisk>
                   <InputNumber
                     v-model={formData.traffic}
                     placeholder="0"
@@ -188,7 +205,7 @@ export default defineComponent(() => {
                 </FormItem>
               </Col>
               <Col span={8}>
-                <FormItem label="有效天数" field="days">
+                <FormItem label="有效天数" field="days" hideAsterisk>
                   <InputNumber
                     v-model={formData.days}
                     placeholder="0"
@@ -198,7 +215,7 @@ export default defineComponent(() => {
                 </FormItem>
               </Col>
               <Col span={8}>
-                <FormItem label="状态" field="status">
+                <FormItem label="状态" field="status" hideAsterisk>
                   <Select v-model={formData.status}>
                     <Option value={1}>上架售卖</Option>
                     <Option value={0}>下架暂停</Option>
