@@ -1,45 +1,51 @@
 import { Context } from "@/types";
 import { useContext } from "@midwayjs/hooks";
-import { Clients } from "@prisma/client";
 import dayjs from "dayjs";
-import { prisma } from "../prisma";
+import _ from "lodash";
+import { Clients } from "../entity/Clients";
+import { SpendLog } from "../entity/SpendLog";
+import { Users } from "../entity/Users";
+import { mGoods, mUser } from "../utils/model";
+import { onFaild, To } from "../utils/tools";
 
 interface OpenGoods {
-  clientId: number;
+  client: Clients;
   goodsId: number;
 }
-export const openGoodsService = async ({
-  clientId,
-  goodsId,
-}: OpenGoods): Promise<Clients> => {
+export const ServiceGoodsOpen = async (data: OpenGoods): Promise<Clients> => {
   const { session } = useContext<Context>();
-  return await prisma.$transaction(async (trans) => {
-    const goods = await trans.goods.findFirst({ where: { status: 1, id: goodsId } });
-    if (!goods) throw new Error("商品不存在或已下架");
+  const { client, goodsId } = data;
 
-    const client = await trans.clients.findFirst({
-      where: {
-        id: clientId,
-        Users: { id: session.userId },
-      },
-    });
+  const transaction = mGoods().manager.transaction(async (entity) => {
+    const goods = await mGoods().findOneBy({ id: goodsId, status: 1 });
+    if (!goods) throw new onFaild("商品不存在或已下架");
 
-    const log = await prisma.spendLog.create({
-      data: {
-        Users: { connect: { id: session.userId } },
-        amount: goods.price,
-        type: 0,
-        remark: `客户 ${client.account} 购买 ${goods.name}`,
-      },
-    });
+    const user = await mUser().findOneBy({ id: session.userId });
+    if (user.blance < goods.price) throw new onFaild("账户余额不足，请充值");
 
-    return await prisma.clients.update({
-      where: { id: clientId },
-      data: {
-        traffic: client.traffic + goods.traffic,
-        expireAt: dayjs(client.expireAt).add(goods.days, "d").toDate(),
-        Users: { update: { blance: { decrement: goods.price } } },
-      },
+    // 用户赋值
+    client.traffic = client.traffic ? client.traffic + goods.traffic : goods.traffic;
+    const isExpire = dayjs().isBefore(client.expireAt) ? dayjs() : dayjs(client.expireAt);
+    client.expireAt = isExpire.add(goods.days, "d").toDate();
+
+    // 扣除余额
+    user.blance -= goods.price;
+    await entity.save(Users, user);
+
+    // 消费记录
+    const model = new SpendLog();
+    _.assign(model, {
+      userId: user.id,
+      type: 0,
+      amount: goods.price,
+      remark: `客户 [${client.account}] 添加商品 [${goods.name}]`,
     });
+    await entity.save(SpendLog, model);
+
+    return await entity.save(Clients, client);
   });
+
+  const [err, resClient] = await To(transaction);
+  if (err) throw new onFaild(err.message, err.status);
+  return resClient;
 };

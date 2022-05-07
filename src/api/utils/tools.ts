@@ -1,4 +1,5 @@
 import type { Res } from "@/types";
+import dayjs from "dayjs";
 
 export const onResult = <T>(data: T, msg = "奥力给！"): Res<T> => {
   return { data, msg };
@@ -36,4 +37,20 @@ export const toGB = (val: number) => {
 
 export const toKB = (val: number) => {
   return ~~Number(val * 1024 * 1024);
+};
+
+export const GenExpire = (count: number, type = "m") => {
+  return dayjs().subtract(count, type).toDate();
+};
+
+export const To = <T, U = onFaild>(
+  promise: Promise<T>
+): Promise<[U, undefined] | [null, T]> => {
+  return promise
+    .then<[null, T]>((res: T) => {
+      return [null, res];
+    })
+    .catch<[U, undefined]>((err) => {
+      return [err, undefined];
+    });
 };

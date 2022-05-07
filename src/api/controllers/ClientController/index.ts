@@ -3,16 +3,15 @@ import type { ApiConfig } from "@midwayjs/hooks";
 import { CheckCookie, CheckPermission } from "@/api/middleware/middleware";
 import { zID, zID_Status, zPage } from "@/api/utils/zod";
 import { z } from "zod";
-import { prisma } from "@/api/prisma";
-import { onFaild, onResult } from "@/api/utils/tools";
+import { onFaild, onResult, To } from "@/api/utils/tools";
 import type { Context, OnPage, OnResult } from "@/types";
-import type { Clients } from "@prisma/client";
 import { ZodAddGoodsUser, ZodCreateUser } from "./schema";
-import dayjs from "dayjs";
-import { dealerSpend } from "@/api/services/DealerService";
 import { toGB } from "@/api/utils/tools";
-import { openGoodsService } from "@/api/services/GoodsService";
-
+import { Clients } from "@/api/entity/Clients";
+import { mClient } from "@/api/utils/model";
+import _ from "lodash";
+import dayjs from "dayjs";
+import { ServiceGoodsOpen } from "@/api/services/GoodsService";
 export const config: ApiConfig = {
   middleware: [CheckCookie, CheckPermission],
 };
@@ -24,21 +23,14 @@ export const ClientGetClients = Api(
   Validate(zPage),
   async ({ pageSize, current }: z.infer<typeof zPage>): OnPage<Array<Clients>> => {
     const { session } = useContext<Context>();
-    const { isAdmin, isDealer, userId: dealerId } = session;
+    const { isDealer, userId } = session;
 
-    let where;
-    if (isDealer) where = { dealerId };
-    if (isAdmin) where = {};
-
-    const [count, list] = await prisma.$transaction([
-      prisma.clients.count({ where }),
-      prisma.clients.findMany({
-        where,
-        orderBy: { id: "desc" },
-        take: pageSize,
-        skip: (current - 1) * pageSize,
-      }),
-    ]);
+    const [list, count] = await mClient().findAndCount({
+      where: { userId: isDealer ? userId : null },
+      order: { id: "DESC" },
+      take: pageSize,
+      skip: (current - 1) * pageSize,
+    });
 
     const mapList = list.map((item) => {
       item.used = toGB(item.used);
@@ -53,54 +45,62 @@ export const ClientGetClients = Api(
 export const ClientCreateClient = Api(
   Post(Path("create")),
   Validate(ZodCreateUser),
-  async (data: z.infer<typeof ZodCreateUser>) => {
+  async (data: z.infer<typeof ZodCreateUser>): OnResult<Clients> => {
     const { session } = useContext<Context>();
-    const { userId } = session;
-    const { tb, source } = data;
-    const hasClient = await prisma.clients.findFirst({
-      where: { Users: { id: userId }, tb, source },
+    const { tb, source, account, passwd, status, goods: goodsId } = data;
+
+    const hasClient = await mClient().findOneBy({
+      userId: session.userId,
+      tb,
+      source,
     });
     if (hasClient) throw new onFaild("该客户已存在");
 
-    // 消费
-    const { goods } = await dealerSpend({ goodsId: data.goods });
+    const transaction = mClient().manager.transaction(async () => {
+      const model = new Clients();
+      _.assign(model, {
+        userId: session.userId,
+        tb,
+        source,
+        account,
+        passwd,
+        status,
+        expireAt: dayjs().toDate(),
+      });
 
-    // 用户赋值
-    const { account, passwd, status } = data;
-    const traffic = goods.traffic;
-    const expireAt = dayjs().add(goods.days, "d").toDate();
-    const client = await prisma.clients.create({
-      data: { userId, source, tb, account, passwd, status, traffic, expireAt },
+      const [err, client] = await To(ServiceGoodsOpen({ goodsId, client: model }));
+      if (err) throw new onFaild(err.message, err.status);
+      return client;
     });
-    if (!client) throw new onFaild("添加客户失败，请重试");
-    return client;
+
+    const [err, client] = await To(transaction);
+    if (err) throw new onFaild(err.message, err.status);
+
+    return onResult(client);
   }
 );
 
 export const ClientDeleteClient = Api(
   Post(Path("delete")),
   Validate(zID),
-  async ({ id }: z.infer<typeof zID>): OnResult<boolean> => {
+  async ({ id }: z.infer<typeof zID>): OnResult<Clients> => {
     const { session } = useContext<Context>();
-    const { count } = await prisma.clients.deleteMany({
-      where: { id, userId: session.userId },
-    });
-    if (count <= 0) throw new onFaild("删除失败，用户不存在");
-    return onResult(true);
+    const client = await mClient().findOneBy({ id, userId: session.userId });
+    const remove = await mClient().remove(client);
+    return onResult(remove);
   }
 );
 
 export const ClientDisableClient = Api(
   Post(Path("disable")),
   Validate(zID_Status),
-  async ({ id, status }: z.infer<typeof zID_Status>): OnResult<boolean> => {
+  async ({ id, status }: z.infer<typeof zID_Status>): OnResult<Clients> => {
     const { session } = useContext<Context>();
-    const { count } = await prisma.clients.updateMany({
-      where: { id, userId: session.userId },
-      data: { status },
-    });
-    if (count <= 0) throw new onFaild("禁用客户失败，请重试");
-    return onResult(true);
+    const client = await mClient().findOneBy({ id, userId: session.userId });
+    if (!client) throw new onFaild("用户不存在，禁用失败");
+    client.status = status;
+    const update = await mClient().save(client);
+    return onResult(update);
   }
 );
 
@@ -108,14 +108,11 @@ export const ClientAddGoodsClient = Api(
   Post(Path("add_goods")),
   Validate(ZodAddGoodsUser),
   async (data: z.infer<typeof ZodAddGoodsUser>): OnResult<Clients> => {
-    try {
-      const client = await openGoodsService({
-        clientId: data.id,
-        goodsId: data.goods,
-      });
-      return onResult(client);
-    } catch (error) {
-      throw new onFaild(error.message);
-    }
+    const { session } = useContext<Context>();
+    const client = await mClient().findOneBy({ id: data.id, userId: session.userId });
+    if (!client) throw new onFaild("添加商品失败，用户不存在");
+    const [err, res] = await To(ServiceGoodsOpen({ client, goodsId: data.goods }));
+    if (err) throw new onFaild(err.message, err.status);
+    return onResult(res);
   }
 );
