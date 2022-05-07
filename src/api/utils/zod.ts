@@ -23,3 +23,8 @@ export const zPage = z.object({
 export const zID = z.object({
   id: zNumber("主键ID"),
 });
+
+export const zID_Status = z.object({
+  id: zNumber("主键ID"),
+  status: zNumber("状态"),
+});

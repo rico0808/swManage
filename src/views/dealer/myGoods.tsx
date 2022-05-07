@@ -6,7 +6,7 @@ import {
 } from "@/api/controllers/GoodsController";
 import usePagination from "@/hooks/usePagination";
 import useUserStore from "@/store/useUser";
-import { TableSlot } from "@/types";
+import type { TableSlot } from "@/types";
 import {
   Button,
   Col,
@@ -25,7 +25,7 @@ import {
   Tag,
 } from "@arco-design/web-vue";
 import type { TableColumnData, FieldRule } from "@arco-design/web-vue";
-import { Goods } from "@prisma/client";
+import type { Goods } from "@prisma/client";
 import _ from "lodash";
 import { storeToRefs } from "pinia";
 import { defineComponent, nextTick, reactive, ref } from "vue";

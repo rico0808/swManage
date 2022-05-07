@@ -116,7 +116,7 @@ const routes: RouteRecordRaw[] = [
               showMenu: true,
               roles: ["dealer", "admin"],
             },
-            component: () => import("@/views/dealer/myProducts"),
+            component: () => import("@/views/dealer/myGoods"),
           },
           {
             name: "_Clients",

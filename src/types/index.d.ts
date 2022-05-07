@@ -4,7 +4,7 @@ import type { Dayjs } from "dayjs";
 
 interface Session {
   expires: string | number | Date | Dayjs;
-  id: number;
+  userId: number;
   status: number;
   role: string;
   isDealer: boolean;

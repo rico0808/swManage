@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
 }
 
 datasource db {
@@ -26,31 +27,33 @@ model SmsSendLog {
 }
 
 model Users {
-  id       Int       @id @default(autoincrement())
-  phone    String    @unique @db.VarChar(255)
-  passwd   String    @db.VarChar(255)
-  blance   Decimal   @default(0.00) @db.Decimal(10, 2)
-  invite   String    @db.VarChar(6)
-  role     String    @default("user") @db.VarChar(255)
-  status   Int       @default(1)
-  createAt DateTime  @default(now())
-  updateAt DateTime  @updatedAt
-  Clients  Clients[]
+  id       Int        @id @default(autoincrement())
+  phone    String     @unique @db.VarChar(255)
+  passwd   String     @db.VarChar(255)
+  blance   Decimal    @default(0.00) @db.Decimal(10, 2)
+  invite   String     @db.VarChar(6)
+  role     String     @default("user") @db.VarChar(255)
+  status   Int        @default(1)
+  createAt DateTime   @default(now())
+  updateAt DateTime   @updatedAt
+  client   Clients[]
+  spend    SpendLog[]
 }
 
 model Clients {
   id       Int      @id @default(autoincrement())
-  dealer   Users    @relation(fields: [dealerId], references: [id])
-  dealerId Int      @default(-1)
+  source   String   @default("tb")
   tb       String
   account  String   @unique
   passwd   String
-  used     BigInt   @default(0)
-  traffic  BigInt   @default(0)
+  used     Int      @default(0)
+  traffic  Int      @default(0)
   status   Int      @default(1)
   expireAt DateTime @default(now())
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
+  Users    Users    @relation(fields: [userId], references: [id])
+  userId   Int
 }
 
 model Goods {
@@ -63,4 +66,15 @@ model Goods {
   status   Int      @default(1)
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
+}
+
+model SpendLog {
+  id       Int      @id @default(autoincrement())
+  type     Int
+  amount   Decimal  @db.Decimal(10, 2)
+  remark   String?
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt
+  Users    Users    @relation(fields: [userId], references: [id])
+  userId   Int
 }

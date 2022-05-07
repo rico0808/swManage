@@ -1,4 +1,4 @@
-import { computed, defineComponent } from "vue";
+import { computed, defineComponent, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { Button, Doption, Dropdown, Menu, MenuItem } from "@arco-design/web-vue";
 import css from "./index.module.less";
@@ -6,18 +6,19 @@ import useUserStore from "@/store/useUser";
 import { storeToRefs } from "pinia";
 import _ from "lodash";
 import useMenus from "@/hooks/useMenus";
+import { isLogin } from "@/utils/tools";
 
 export default defineComponent(() => {
   const router = useRouter();
   const route = useRoute();
   const user = useUserStore();
-  const { isLogin, profile } = storeToRefs(user);
+  const { profile } = storeToRefs(user);
   const { navMenus, dropdowns } = useMenus();
 
   const activeRoute = computed(() => [route.name]);
 
   const UserProfile = () => {
-    if (isLogin.value) {
+    if (isLogin()) {
       return (
         <div>
           <Dropdown
@@ -29,7 +30,7 @@ export default defineComponent(() => {
             }}
             onSelect={(name) => router.push({ name })}
           >
-            <Button>{profile.value.phone}</Button>
+            <Button>{profile.value?.phone}</Button>
           </Dropdown>
         </div>
       );
@@ -59,7 +60,7 @@ export default defineComponent(() => {
                 </MenuItem>
               ))}
             </Menu>
-            <UserProfile />
+            {UserProfile()}
           </div>
         </header>
 

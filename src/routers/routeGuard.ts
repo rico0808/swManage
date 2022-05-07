@@ -1,5 +1,6 @@
 import usePermission from "@/hooks/usePermission";
 import useUserStore from "@/store/useUser";
+import { isLogin } from "@/utils/tools";
 import _ from "lodash";
 import { storeToRefs } from "pinia";
 import type {
@@ -23,9 +24,9 @@ const RouteGuard: NavigationGuardWithThis<Guard> = async (to, from, next) => {
 
   // 登录状态
   const user = useUserStore();
-  const { isLogin, profile } = storeToRefs(user);
+  const { profile } = storeToRefs(user);
 
-  if (isLogin.value && !profile.value) await user.GetProfile();
+  if (isLogin() && !profile.value) await user.GetProfile();
 
   // 访问公共页面不作任何拦截
   if (to.meta.isPublic) {
@@ -35,7 +36,7 @@ const RouteGuard: NavigationGuardWithThis<Guard> = async (to, from, next) => {
 
   // 访问认证页
   if (to.meta.isAuth) {
-    if (isLogin.value) next({ name: "UserDashboard" });
+    if (isLogin()) next({ name: "UserDashboard" });
     else next();
     return;
   }
@@ -43,7 +44,7 @@ const RouteGuard: NavigationGuardWithThis<Guard> = async (to, from, next) => {
   // 访问私有页面
   if (to.meta.isPriavte) {
     // 判断登录状态 未登录跳转登录页
-    if (!isLogin.value) {
+    if (!isLogin()) {
       next({ name: "Login" });
       return;
     }

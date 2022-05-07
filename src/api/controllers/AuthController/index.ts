@@ -15,7 +15,10 @@ const Path = (code: string) => `/api/auth/${code}`;
 export const AuthUserLogin = Api(
   Post(Path("login")),
   Validate(ZodLogin),
-  async ({ phone, passwd }: z.infer<typeof ZodLogin>): OnResult<Omit<Users, "passwd">> => {
+  async ({
+    phone,
+    passwd,
+  }: z.infer<typeof ZodLogin>): OnResult<Omit<Users, "passwd">> => {
     // 信息认证
     const user = await prisma.users.findUnique({ where: { phone } });
     if (!user) throw new onFaild("该手机号码未注册");
@@ -24,7 +27,12 @@ export const AuthUserLogin = Api(
     // cookie 设置
     const ctx = useContext<Context>();
     const expires = dayjs().add(24, "h").toDate();
-    const cookie = JSON.stringify({ id: user.id, status: user.status, role: user.role, expires });
+    const cookie = JSON.stringify({
+      userId: user.id,
+      status: user.status,
+      role: user.role,
+      expires,
+    });
     ctx.cookies.set("token", cookie, { encrypt: true, expires });
 
     return onResult(_.omit(user, ["passwd"]));

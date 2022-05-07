@@ -9,9 +9,9 @@ type SendSMS = { phone: string; content: string };
 const sendSms = async ({ phone, content }: SendSMS): Promise<boolean> => {
   const config = useConfig("sms");
   const res = await axios.get(
-    `http://api.smsbao.com/sms?u=${config.user}&p=${
-      config.api
-    }&m=${phone}&c=${encodeURI(content)}`,
+    `http://api.smsbao.com/sms?u=${config.user}&p=${config.api}&m=${phone}&c=${encodeURI(
+      content
+    )}`,
     { timeout: 8 * 1000 }
   );
   await prisma.smsSendLog.create({ data: { phone, content } });
@@ -45,3 +45,4 @@ export const sendCode = async ({
   await prisma.smsCode.create({ data: { phone, code, ip, type } });
   return res && { msg: "发送验证码成功", status: true };
 };
+0;
