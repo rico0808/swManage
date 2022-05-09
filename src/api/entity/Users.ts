@@ -4,10 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
 } from "typeorm";
-import { Clients } from "./Clients";
-import { SpendLog } from "./SpendLog";
 
 @EntityModel("Users")
 export class Users {

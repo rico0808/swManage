@@ -1,4 +1,4 @@
-import { computed, defineComponent, watch } from "vue";
+import { computed, defineComponent } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { Button, Doption, Dropdown, Menu, MenuItem } from "@arco-design/web-vue";
 import css from "./index.module.less";

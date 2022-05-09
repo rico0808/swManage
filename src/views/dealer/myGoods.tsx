@@ -25,10 +25,10 @@ import {
   Tag,
 } from "@arco-design/web-vue";
 import type { TableColumnData, FieldRule } from "@arco-design/web-vue";
-import type { Goods } from "@prisma/client";
 import _ from "lodash";
 import { storeToRefs } from "pinia";
 import { defineComponent, nextTick, reactive, ref } from "vue";
+import { Goods } from "@/api/entity/Goods";
 
 export default defineComponent(() => {
   const { isAdmin } = storeToRefs(useUserStore());

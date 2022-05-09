@@ -1,8 +1,8 @@
 import { AuthUserLogin } from "@/api/controllers/AuthController";
 import { ZodLogin } from "@/api/controllers/AuthController/schema";
-import { UserGetProfile } from "@/api/controllers/UserController";
+import { UserGetProfile } from "@/api/controllers/ProfileController";
+import { Users } from "@/api/entity/Users";
 import router from "@/routers";
-import { Users } from "@prisma/client";
 import _ from "lodash";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";

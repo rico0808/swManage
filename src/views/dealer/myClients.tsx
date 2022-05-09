@@ -27,11 +27,11 @@ import {
   Link,
   Popconfirm,
 } from "@arco-design/web-vue";
-import type { Clients } from "@prisma/client";
 import dayjs from "dayjs";
 import _ from "lodash";
 import { defineComponent, reactive, ref } from "vue";
 import type { TableColumnData, FieldRule } from "@arco-design/web-vue";
+import { Clients } from "@/api/entity/Clients";
 
 export default defineComponent(() => {
   const { pagination, dataList, loading, onChange, reload } =

@@ -12,6 +12,7 @@ import { mClient } from "@/api/utils/model";
 import _ from "lodash";
 import dayjs from "dayjs";
 import { ServiceGoodsOpen } from "@/api/services/GoodsService";
+
 export const config: ApiConfig = {
   middleware: [CheckCookie, CheckPermission],
 };
@@ -23,10 +24,10 @@ export const ClientGetClients = Api(
   Validate(zPage),
   async ({ pageSize, current }: z.infer<typeof zPage>): OnPage<Array<Clients>> => {
     const { session } = useContext<Context>();
-    const { isDealer, userId } = session;
+    const { isAdmin, userId } = session;
 
     const [list, count] = await mClient().findAndCount({
-      where: { userId: isDealer ? userId : null },
+      where: { userId: isAdmin ? null : userId },
       order: { id: "DESC" },
       take: pageSize,
       skip: (current - 1) * pageSize,
@@ -47,10 +48,11 @@ export const ClientCreateClient = Api(
   Validate(ZodCreateUser),
   async (data: z.infer<typeof ZodCreateUser>): OnResult<Clients> => {
     const { session } = useContext<Context>();
+    const { isAdmin, userId } = session;
     const { tb, source, account, passwd, status, goods: goodsId } = data;
 
     const hasClient = await mClient().findOneBy({
-      userId: session.userId,
+      userId: isAdmin ? -1 : userId,
       tb,
       source,
     });
@@ -59,7 +61,7 @@ export const ClientCreateClient = Api(
     const transaction = mClient().manager.transaction(async () => {
       const model = new Clients();
       _.assign(model, {
-        userId: session.userId,
+        userId,
         tb,
         source,
         account,
@@ -97,7 +99,7 @@ export const ClientDisableClient = Api(
   async ({ id, status }: z.infer<typeof zID_Status>): OnResult<Clients> => {
     const { session } = useContext<Context>();
     const client = await mClient().findOneBy({ id, userId: session.userId });
-    if (!client) throw new onFaild("用户不存在，禁用失败");
+    if (!client) throw new onFaild("客户不存在，禁用失败");
     client.status = status;
     const update = await mClient().save(client);
     return onResult(update);
