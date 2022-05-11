@@ -14,7 +14,7 @@ export class Goods {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ unique: true })
   sku: string;
 
   @Column("decimal", { precision: 5, scale: 2, default: 0.0 })

@@ -6,24 +6,24 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
-@EntityModel("Servers")
-export class Servers {
+@EntityModel("Nodes")
+export class Nodes {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  type: number;
-
-  @Column()
-  name: string;
-
   @Column({ unique: true })
-  ip: string;
+  ddns: string;
+
+  @Column()
+  relayID: number;
+
+  @Column()
+  landID: number;
 
   @Column()
   port: number;
 
-  @Column({ default: 0 })
+  @Column({ default: 1 })
   status: number;
 
   @CreateDateColumn()
