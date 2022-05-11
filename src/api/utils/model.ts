@@ -1,6 +1,7 @@
 import { useEntityModel } from "@midwayjs/orm";
 import { Clients } from "../entity/Clients";
 import { Goods } from "../entity/Goods";
+import { Servers } from "../entity/Servers";
 import { SmsCode } from "../entity/SmcCode";
 import { SmsLog } from "../entity/SmsLog";
 import { SpendLog } from "../entity/SpendLog";
@@ -12,3 +13,4 @@ export const mGoods = () => useEntityModel(Goods);
 export const mSpend = () => useEntityModel(SpendLog);
 export const mSmsCode = () => useEntityModel(SmsCode);
 export const mSmsLog = () => useEntityModel(SmsLog);
+export const mServer = () => useEntityModel(Servers);
