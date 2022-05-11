@@ -63,7 +63,7 @@ export const AuthUserRegister = Api(
     const model = new Users();
     _.assign(model, { phone, passwd, invite: RandomLetter(6) });
     const user = await mUser().save(model);
-    if (!user) throw new onFaild("注册失败，请尝试重新注册");
+    if (!user) throw new onFaild("注册失败，请尝试重新注册", 500);
 
     // 注册成功，删除验证码
     await mSmsCode().remove(smsCode);
@@ -115,7 +115,7 @@ export const AuthUserForget = Api(
     // 密码更新
     user.passwd = passwd;
     const update = await mUser().save(user);
-    if (!update) throw new onFaild("重置密码失败，请重新尝试");
+    if (!update) throw new onFaild("重置密码失败，请重新尝试", 500);
     await mSmsCode().remove(smsCode);
     return onResult(_.omit(user, ["passwd"]));
   }

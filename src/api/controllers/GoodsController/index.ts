@@ -46,6 +46,7 @@ export const GoodsCreateGoods = Api(
     const model = new Goods();
     _.assign(model, { name, sku, traffic: toKB(traffic), price, days, status });
     const goods = await mGoods().save(model);
+    if (!goods) throw new onFaild("添加商品失败，请重试", 500);
     return onResult(goods);
   }
 );
@@ -57,6 +58,7 @@ export const GoodsDeleteGoods = Api(
   async ({ id }: z.infer<typeof zID>): OnResult<Goods> => {
     const goods = await mGoods().findOneBy({ id });
     const remove = await mGoods().remove(goods);
+    if (!remove) throw new onFaild("删除商品失败，请重试", 500);
     return onResult(remove);
   }
 );
@@ -72,6 +74,7 @@ export const GoodsUpdateGoods = Api(
 
     _.assign(goods, { name, traffic: toKB(traffic), days, status, price });
     const update = await mGoods().save(goods);
+    if (!update) throw new onFaild("编辑商品失败，请重试", 500);
     return onResult(update);
   }
 );

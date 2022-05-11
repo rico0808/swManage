@@ -89,6 +89,7 @@ export const ClientDeleteClient = Api(
     const { session } = useContext<Context>();
     const client = await mClient().findOneBy({ id, userId: session.userId });
     const remove = await mClient().remove(client);
+    if (!remove) throw new onFaild("删除客户失败，请重试", 500);
     return onResult(remove);
   }
 );
@@ -102,6 +103,7 @@ export const ClientDisableClient = Api(
     if (!client) throw new onFaild("客户不存在，禁用失败");
     client.status = status;
     const update = await mClient().save(client);
+    if (!update) throw new onFaild("禁用客户失败，请重试", 500);
     return onResult(update);
   }
 );

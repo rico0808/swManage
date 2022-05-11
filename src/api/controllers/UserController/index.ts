@@ -40,6 +40,7 @@ export const UserDeleteUser = Api(
     const user = await mUser().findOneBy({ id });
     if (user.role === "admin") throw new onFaild("无法删除管理员账号");
     const remove = await mUser().remove(user);
+    if (!remove) throw new onFaild("删除账号失败，请重试", 500);
     return onResult(remove);
   }
 );
@@ -53,6 +54,7 @@ export const UserDisableUser = Api(
     if (user.role === "admin") throw new onFaild("无法禁用管理员账号");
     user.status = status;
     const update = await mUser().save(user);
+    if (!update) throw new onFaild("禁用账号失败，请重试", 500);
     return onResult(update);
   }
 );
