@@ -38,6 +38,9 @@ export class Clients {
   @Column("datetime")
   expireAt: Date;
 
+  @Column({ default: null })
+  apiKey: string;
+
   @CreateDateColumn()
   createAt: Date;
 

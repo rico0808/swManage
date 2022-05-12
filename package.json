@@ -9,6 +9,8 @@
     "check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@alicloud/alidns20150109": "^2.0.1",
+    "@alicloud/openapi-client": "^0.4.1",
     "@midwayjs/hooks": "^3.0.1",
     "@midwayjs/hooks-kit": "^3.0.1",
     "@midwayjs/koa": "^3.3.5",

@@ -24,6 +24,14 @@ export default createConfiguration({
           charset: "utf8mb4",
           logging: false,
         },
+        aliyun: {
+          accessKeyId: "LTAI5tSDxzvQ82zjY8VnLVfy",
+          accessKeySecret: "i0b9tgPaHjF9HjNwfLhsqNr551XBRX",
+        },
+        ddns: {
+          domain: "nsns.club",
+          TTL: 60,
+        },
       },
     },
   ],

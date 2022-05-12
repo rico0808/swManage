@@ -4,8 +4,9 @@ import { z } from "zod";
 const ZodBaseServer = z.object({
   type: zNumber("服务器类型"),
   name: zString("服务器名称"),
-  ip: zString("服务器IP"),
+  ddns: zString("服务器DDNS"),
   port: zNumber("服务器API端口"),
+  key: zString("服务器通信KEY"),
 });
 
 export const ZodCreateServer = ZodBaseServer;

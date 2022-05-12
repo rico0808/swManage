@@ -1,14 +1,14 @@
 import { Servers } from "@/api/entity/Servers";
-import { Users } from "@/api/entity/Users";
 import { CheckCookie, CheckPermission, isAdmin } from "@/api/middleware/middleware";
-import { mClient, mServer, mUser } from "@/api/utils/model";
+import { DDNSCreate, DDNSDelete } from "@/api/services/DDNSService";
+import { mNodes, mServer } from "@/api/utils/model";
 import { onFaild, onResult } from "@/api/utils/tools";
-import { zID, zID_Status, zPage } from "@/api/utils/zod";
+import { zID, zPage } from "@/api/utils/zod";
 import { OnPage, OnResult } from "@/types";
-import { Api, ApiConfig, Post, Validate } from "@midwayjs/hooks";
+import { Api, ApiConfig, Post, useConfig, Validate } from "@midwayjs/hooks";
 import _ from "lodash";
 import { z } from "zod";
-import { ZodCreateServer, ZodUpdateServer } from "./schema";
+import { ZodCreateServer } from "./schema";
 
 export const config: ApiConfig = {
   middleware: [CheckCookie, CheckPermission, isAdmin],
@@ -34,40 +34,41 @@ export const ServerCreateServer = Api(
   Post(Path("create")),
   Validate(ZodCreateServer),
   async (data: z.infer<typeof ZodCreateServer>): OnResult<Servers> => {
-    const { type, name, ip, port } = data;
-    const hasServer = await mServer().findOneBy({ ip });
+    const { domain } = useConfig("ddns");
+    const { type, name, port, key } = data;
+    const ddns = `${data.ddns}.server.${domain}`;
+    const hasServer = await mServer().findOneBy({ ddns, type });
     if (hasServer) throw new onFaild("该IP服务器已存在");
 
+    const dnsRecord = await DDNSCreate({
+      RR: `${data.ddns}.server`,
+      value: "1.1.1.1",
+      type: "A",
+    });
+    if (!dnsRecord) throw new onFaild("添加DNS记录失败，请重试");
+    const { recordId } = dnsRecord;
+
     const model = new Servers();
-    _.assign(model, { type, name, ip, port });
+    _.assign(model, { type, name, ddns, port, key, recordId });
     const server = await mServer().save(model);
     if (!server) throw new onFaild("添加服务器失败，请重试", 500);
     return onResult(server);
   }
 );
 
-export const ServerUpdateServer = Api(
-  Post(Path("update")),
-  Validate(ZodUpdateServer),
-  async (data: z.infer<typeof ZodUpdateServer>): OnResult<Servers> => {
-    const { id, type, name, ip, port } = data;
-    const server = await mServer().findOneBy({ id });
-    if (!server) throw new onFaild("添加服务器失败，请重试");
-
-    _.assign(server, { type, name, ip, port });
-
-    const update = await mServer().save(server);
-    if (!update) throw new onFaild("编辑服务器失败，请重试", 500);
-    return onResult(update);
-  }
-);
-
+// 删除服务器
 export const ServerDeleteServer = Api(
   Post(Path("delete")),
   Validate(zID),
   async ({ id }: z.infer<typeof zID>): OnResult<Servers> => {
     const server = await mServer().findOneBy({ id });
     if (!server) throw new onFaild("删除失败，服务器不存在");
+
+    const isUsed = await mNodes().findOneBy([{ relayID: id }, { landID: id }]);
+    if (isUsed) throw new onFaild("服务器正在被节点使用，无法删除");
+
+    const delRecord = await DDNSDelete(server.recordId);
+    if (!delRecord) throw new onFaild("删除DNS记录失败，请重试");
 
     const remove = await mServer().remove(server);
     if (!remove) throw new onFaild("删除服务器失败，请重试", 500);

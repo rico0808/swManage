@@ -26,6 +26,9 @@ export class Nodes {
   @Column({ default: 1 })
   status: number;
 
+  @Column()
+  recordId: string;
+
   @CreateDateColumn()
   createAt: Date;
 
