@@ -25,7 +25,6 @@ const _launch = async (
     if (_.has(data, "code")) {
       const code = _.get(data, "code");
       if (code == "40004") return data;
-      console.log(err);
     }
     return null;
   }
@@ -104,11 +103,8 @@ export const GostChains = ({ server, key, ddns, listen }: GostParams) => {
   };
 
   const update = async (land: string) => {
-    console.log(JSON.stringify(Gost.Chain(land)));
-
     const res = await _launch(`${url}/${ddns}-chains`, "PUT", Gost.Chain(land));
     if (!res) throw new onFaild("更新Gost转发链失败", 500);
-    console.log(res);
     return res;
   };
   return { create, remove, update };
