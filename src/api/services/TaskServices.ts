@@ -1,8 +1,9 @@
 import { Nodes } from "../entity/Nodes";
 import type { Servers } from "../entity/Servers";
 import { mNodes, mServer } from "../utils/model";
-import { sendFtqqMsg } from "../utils/tools";
+import { sendFtqqMsg, To } from "../utils/tools";
 import { DDNSUpdate } from "./DDNSService";
+import { ServiceNodeSwitch } from "./NodeServices";
 
 const _replaceBackupServer = async (server: Servers) => {
   const isRelay = server.type === 0;
@@ -14,26 +15,17 @@ const _replaceBackupServer = async (server: Servers) => {
   if (isLand) nodes = await mNodes().findBy({ landID: server.id });
 
   //  备用服务器
-  let backup: Servers;
-  if (isRelay) backup = await mServer().findOneBy({ type: 0, status: 1 });
-  if (isLand) backup = await mServer().findOneBy({ type: 1, status: 1 });
+  const backup = await mServer().findOneBy({ type: server.type, status: 1 });
   if (!backup) return null;
 
   const replace: Array<Nodes> = [];
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i];
-    const updateDns = await DDNSUpdate({
-      recordId: node.recordId,
-      type: "CNAME",
-      RR: node.ddns.split(".")[0],
-      value: backup.ddns,
-    });
-    if (updateDns) {
-      if (isRelay) node.relayID = backup.id;
-      if (isLand) node.landID = backup.id;
-      const res = await mNodes().save(node);
-      replace.push(res);
-    }
+    const [err, res] = await To(
+      ServiceNodeSwitch({ nodeId: node.id, serverId: backup.id, type: server.type })
+    );
+    if (err) continue;
+    replace.push(res);
   }
   return replace;
 };

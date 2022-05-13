@@ -1,23 +1,18 @@
 import { Nodes } from "@/api/entity/Nodes";
 import { Servers } from "@/api/entity/Servers";
 import { CheckCookie, CheckPermission, isAdmin } from "@/api/middleware/middleware";
-import {
-  DDNSCreate,
-  DDNSDelete,
-  DDNSSetStatus,
-  DDNSUpdate,
-} from "@/api/services/DDNSService";
+import { DDNSCreate, DDNSDelete, DDNSSetStatus } from "@/api/services/DDNSService";
 import { GostChains, GostServices } from "@/api/services/GostServices";
+import { ServiceNodeSwitch } from "@/api/services/NodeServices";
 import { mNodes, mServer } from "@/api/utils/model";
 import { onFaild, onResult, To } from "@/api/utils/tools";
 import { zID, zID_Status, zPage } from "@/api/utils/zod";
 import { OnPage, OnResult } from "@/types";
 import { Api, ApiConfig, Post, useConfig, Validate } from "@midwayjs/hooks";
-import axios from "axios";
 import _ from "lodash";
 import { FindOptionsWhere } from "typeorm";
 import { z } from "zod";
-import { ZodCreateNode, ZodSwtichServer, ZodUpdateNode } from "./schema";
+import { ZodCreateNode, ZodSwtichServer } from "./schema";
 import type { NodesItem } from "./types";
 
 export const config: ApiConfig = {
@@ -186,105 +181,8 @@ export const NodeSwitchNodeServer = Api(
   Post(Path("switch")),
   Validate(ZodSwtichServer),
   async ({ id, serverId, type }: z.infer<typeof ZodSwtichServer>): OnResult<Nodes> => {
-    const node = await mNodes().findOneBy({ id });
-    if (!node) throw new onFaild("切换失败，节点不存在");
-
-    const newServer = await mServer().findOneBy({ id: serverId, type, status: 1 });
-    if (!newServer) throw new onFaild("切换失败，服务器不存在或离线");
-
-    const isRelay = type === 0;
-    const isLand = type === 1;
-
-    // 切换转发节点
-    if (isRelay) {
-      const before = await mServer().findOneBy({ id: node.relayID, status: 1 });
-      const land = await mServer().findOneBy({ id: node.landID });
-      if (before) {
-        await To(
-          GostServices({
-            server: `${before.ddns}:${before.port}`,
-            key: before.key,
-            ddns: node.ddns.split(".")[0],
-            listen: node.port,
-          }).remove()
-        );
-        await To(
-          GostChains({
-            server: `${before.ddns}:${before.port}`,
-            key: before.key,
-            ddns: node.ddns.split(".")[0],
-            listen: node.port,
-          }).remove()
-        );
-      }
-      // 中转机开启转发链
-      const relayParams = {
-        server: `${newServer.ddns}:${newServer.port}`,
-        key: newServer.key,
-        ddns: node.ddns.split(".")[0],
-        listen: node.port,
-      };
-      const [chainErr] = await To(GostChains(relayParams).create(land.ddns));
-      if (chainErr) throw new onFaild(chainErr.message, chainErr.status);
-
-      // 中转机开启服务
-      const [relayErr] = await To(GostServices(relayParams).createRelay());
-      if (relayErr) throw new onFaild(relayErr.message, relayErr.status);
-
-      const updateRecord = await DDNSUpdate({
-        recordId: node.recordId,
-        RR: relayParams.ddns,
-        value: newServer.ddns,
-        type: "CNAME",
-      });
-      if (!updateRecord) throw new onFaild("更新DNS记录失败，请重试");
-
-      node.relayID = newServer.id;
-      const update = await mNodes().save(node);
-      if (!update) throw new onFaild("切换服务器失败，请重试", 500);
-      return onResult(update);
-    }
-
-    // 切换落地节点
-    if (isLand) {
-      const before = await mServer().findOneBy({ id: node.landID, status: 1 });
-      if (before) {
-        await To(
-          GostServices({
-            server: `${before.ddns}:${before.port}`,
-            key: before.key,
-            ddns: node.ddns.split(".")[0],
-            listen: node.port,
-          }).remove()
-        );
-      }
-      const relay = await mServer().findOneBy({ id: node.relayID, status: 1 });
-      if (!relay) throw new onFaild("转发服务器不存在或离线");
-      // 创建新落地服务
-      const [landErr] = await To(
-        GostServices({
-          server: `${newServer.ddns}:${newServer.port}`,
-          key: newServer.key,
-          ddns: node.ddns.split(".")[0],
-          listen: node.port,
-        }).createLand()
-      );
-      if (landErr) throw new onFaild(landErr.message, landErr.status);
-
-      // 更新中转机转发链
-      const relayParams = {
-        server: `${relay.ddns}:${relay.port}`,
-        key: relay.key,
-        ddns: node.ddns.split(".")[0],
-        listen: node.port,
-      };
-      const [chainErr] = await To(GostChains(relayParams).update(newServer.ddns));
-      if (chainErr) throw new onFaild(chainErr.message, chainErr.status);
-
-      node.landID = newServer.id;
-      const update = await mNodes().save(node);
-      if (!update) throw new onFaild("切换服务器失败，请重试", 500);
-      return onResult(update);
-    }
+    const [err, res] = await To(ServiceNodeSwitch({ nodeId: id, serverId, type }));
+    if (err) throw new onFaild(err.message, err.status);
+    return onResult(res);
   }
 );
