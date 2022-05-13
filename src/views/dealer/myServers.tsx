@@ -37,6 +37,7 @@ export default defineComponent(() => {
     type: 0,
     name: "",
     ddns: "",
+    ip: "",
     port: null,
     key: "",
   });
@@ -71,9 +72,10 @@ export default defineComponent(() => {
     { title: "ID", dataIndex: "id", ellipsis: true, width: 70 },
     { title: "类型", slotName: "type", align: "center", width: 100 },
     { title: "名称", dataIndex: "name" },
-    { title: "DDNS", dataIndex: "ddns" },
-    { title: "API端口", dataIndex: "port", align: "center" },
-    { title: "KEY", dataIndex: "key" },
+    { title: "DDNS", dataIndex: "ddns", width: 250 },
+    { title: "IP地址", dataIndex: "ip" },
+    { title: "GostPort", dataIndex: "port", align: "center" },
+    { title: "PathPrefix", dataIndex: "key" },
     { title: "状态", slotName: "status", align: "center" },
     { title: "操作", slotName: "actions", align: "center" },
   ];
@@ -82,8 +84,9 @@ export default defineComponent(() => {
     type: [{ required: true, message: "请选择服务器类型" }],
     name: [{ required: true, message: "请输入服务器名称" }],
     ddns: [{ required: true, message: "请输入服务器DDNS地址" }],
-    port: [{ required: true, message: "请输入服务器API端口" }],
-    key: [{ required: true, message: "请输入服务器通信KEY" }],
+    ip: [{ required: true, message: "请输入服务器IP地址" }],
+    port: [{ required: true, message: "请输入 Gost API端口" }],
+    key: [{ required: true, message: "请输入 Gost PathPrefix" }],
   };
 
   const render = () => {
@@ -126,7 +129,7 @@ export default defineComponent(() => {
 
         <Modal
           v-model:visible={formModal.value}
-          width={450}
+          width={500}
           title="添加服务器"
           onBeforeOk={handleCreate}
           onBeforeClose={() => formRef.value.resetFields()}
@@ -150,18 +153,27 @@ export default defineComponent(() => {
             <Row gutter={16}>
               <Col span={12}>
                 <FormItem label="服务器DDNS" field="ddns" hideAsterisk>
-                  <Input v-model={formData.ddns} placeholder="..." />
+                  <Input
+                    v-model={formData.ddns}
+                    placeholder="..."
+                    v-slots={{ append: () => "server.nsns.club" }}
+                  />
                 </FormItem>
               </Col>
               <Col span={12}>
-                <FormItem label="API端口" field="port" hideAsterisk>
-                  <InputNumber v-model={formData.port} placeholder="10240" hideButton />
+                <FormItem label="服务器IP" field="ip" hideAsterisk>
+                  <Input v-model={formData.ip} placeholder="..." />
                 </FormItem>
               </Col>
             </Row>
             <Row gutter={16}>
-              <Col span={24}>
-                <FormItem label="通信KEY" field="key" hideAsterisk>
+              <Col span={12}>
+                <FormItem label="Gost API端口" field="port" hideAsterisk>
+                  <InputNumber v-model={formData.port} placeholder="10240" hideButton />
+                </FormItem>
+              </Col>
+              <Col span={12}>
+                <FormItem label="Gost PathPrefix" field="key" hideAsterisk>
                   <Input v-model={formData.key} placeholder="..." />
                 </FormItem>
               </Col>

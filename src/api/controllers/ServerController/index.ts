@@ -35,21 +35,21 @@ export const ServerCreateServer = Api(
   Validate(ZodCreateServer),
   async (data: z.infer<typeof ZodCreateServer>): OnResult<Servers> => {
     const { domain } = useConfig("ddns");
-    const { type, name, port, key } = data;
+    const { type, name, port, key, ip } = data;
     const ddns = `${data.ddns}.server.${domain}`;
     const hasServer = await mServer().findOneBy({ ddns, type });
-    if (hasServer) throw new onFaild("该IP服务器已存在");
+    if (hasServer) throw new onFaild("该DDNS服务器已存在");
 
     const dnsRecord = await DDNSCreate({
       RR: `${data.ddns}.server`,
-      value: "1.1.1.1",
+      value: ip,
       type: "A",
     });
     if (!dnsRecord) throw new onFaild("添加DNS记录失败，请重试");
     const { recordId } = dnsRecord;
 
     const model = new Servers();
-    _.assign(model, { type, name, ddns, port, key, recordId });
+    _.assign(model, { type, name, ddns, port, key, recordId, ip });
     const server = await mServer().save(model);
     if (!server) throw new onFaild("添加服务器失败，请重试", 500);
     return onResult(server);

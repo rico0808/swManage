@@ -16,7 +16,7 @@ const _createClient = () => {
 type DDNSResponse = Promise<{ requestId: string; recordId: string }>;
 
 // 创建DDNS
-type CreateRecord = { RR: string; value: string; type: "A" | "CNAME" };
+type CreateRecord = { RR: string; value: string; type: "A" | "CNAME"; recordId?: string };
 export const DDNSCreate = async ({ RR, value, type }: CreateRecord): DDNSResponse => {
   const { domain: domainName, TTL } = useConfig("ddns");
   const client = _createClient();
@@ -29,6 +29,23 @@ export const DDNSCreate = async ({ RR, value, type }: CreateRecord): DDNSRespons
   });
   const [err, res] = await To(client.addDomainRecord(record));
   if (err || !res?.body?.recordId) return null;
+  return { requestId: res.body.requestId, recordId: res.body.recordId };
+};
+
+// 更新DDNS
+export const DDNSUpdate = async (data: CreateRecord): DDNSResponse => {
+  const { recordId, RR, value, type } = data;
+  const { TTL } = useConfig("ddns");
+  const client = _createClient();
+  const record = new $Alidns20150109.UpdateDomainRecordRequest({
+    recordId,
+    RR,
+    value,
+    type,
+    TTL,
+  });
+  const [err, res] = await To(client.updateDomainRecord(record));
+  if (err || !res.body?.recordId) return null;
   return { requestId: res.body.requestId, recordId: res.body.recordId };
 };
 

@@ -18,6 +18,9 @@ export class Servers {
   type: number;
 
   @Column()
+  ip: string;
+
+  @Column()
   name: string;
 
   @Column()
