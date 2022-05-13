@@ -1,92 +1,31 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import _ from "lodash";
+import _, { remove } from "lodash";
+import { GostConfig } from "../utils/gost";
 import { onFaild, To } from "../utils/tools";
-
-interface GostChina {
-  name: string;
-  hops: [
-    {
-      name: string;
-      nodes: [
-        {
-          name: string;
-          addr: string;
-          connector: {
-            type: string;
-          };
-          dialer: {
-            type: string;
-          };
-        }
-      ];
-    }
-  ];
-}
-
-interface GostService {
-  name: string;
-  addr: string;
-  handler: {
-    type: string;
-    chain: string;
-  };
-  listener: {
-    type: string;
-  };
-}
-
-interface GetConfigResponse {
-  services: Array<GostService>;
-  chains: Array<GostChina>;
-  api: {
-    addr: string;
-  };
-}
-
-const kcpConfig = {
-  key: "ErNT8yXzPfWLsFuO",
-  crypt: "aes",
-  mode: "fast",
-  mtu: 1400,
-  sndwnd: 1024,
-  rcvwnd: 1024,
-  datashard: 10,
-  parityshard: 3,
-  dscp: 46,
-  nocomp: true,
-  acknodelay: false,
-  nodelay: 0,
-  interval: 50,
-  resend: 0,
-  nc: 0,
-  sockbuf: 16777217,
-  smuxbuf: 16777217,
-  streambuf: 16777217,
-  smuxver: 2,
-  keepalive: 10,
-  snmplog: "",
-  snmpperiod: 60,
-  signal: false,
-  tcp: false,
-};
 
 const request = axios.create({ timeout: 6 * 1000 });
 
 // 发起服务
-const _launch = async (url: string, method: "POST" | "GET" | "DELETE", data = {}) => {
+const _launch = async (
+  url: string,
+  method: "POST" | "GET" | "DELETE" | string,
+  data = undefined
+) => {
   const [err, res]: [AxiosError, AxiosResponse] = await To(
     request({
       url: `http://${url}`,
       method,
-      data: method === "POST" ? data : undefined,
+      data: data && data,
     })
   );
+
   if (err) {
     if (!err.response) return null;
     const data = err.response.data || {};
     if (_.has(data, "code")) {
       const code = _.get(data, "code");
       if (code == "40004") return data;
+      console.log(err);
     }
     return null;
   }
@@ -94,78 +33,83 @@ const _launch = async (url: string, method: "POST" | "GET" | "DELETE", data = {}
 };
 
 // 获取配置
-export const GostGetConfig = async (server: string): Promise<GetConfigResponse> => {
+export const GostGetConfig = async (server: string): Promise<object> => {
   const config = await _launch(`${server}/config`, "GET");
   if (!config) return null;
   return config;
 };
 
-// 创建转发
-interface GostRelay {
+interface GostParams {
+  server: string;
+  key: string;
   ddns: string;
-  port?: number;
-  relay: string;
-  land: string;
+  listen: number;
 }
-export const CreateGostRelay = async (params: GostRelay) => {
-  const { ddns, port, relay, land } = params;
-  // 落地创建HTTP服务
-  const landGost = await _launch(`${land}/config/services`, "POST", {
-    name: `${ddns}-land`,
-    addr: `:${port}`,
-    handler: { type: "forward" },
-    listener: {
-      type: "kcp",
-      metadata: { config: kcpConfig },
-    },
-    forwarder: { targets: ["127.0.0.1:52333"] },
-  });
-  if (!landGost) throw new onFaild("创建落地服务失败", 500);
 
-  // 创建中转转发链
-  const relayChain = await _launch(`${relay}/config/chains`, "POST", {
-    name: `${ddns}-chain`,
-    hops: [
-      {
-        name: "hop-0",
-        nodes: [
-          {
-            name: "node-0",
-            addr: `${land.split(":")[0]}:${port}`,
-            connector: { type: "forward" },
-            dialer: { type: "kcp", metadata: { config: kcpConfig } },
-          },
-        ],
-      },
-    ],
-  });
-  if (!relayChain) throw new onFaild("创建转发链失败", 500);
+export const GostServices = ({ server, key, ddns, listen }: GostParams) => {
+  const url = `${server}/${key}/config/services`;
+  const Gost = new GostConfig(ddns, listen);
 
-  // 创建转发服务
-  const relayGost = await _launch(`${relay}/config/services`, "POST", {
-    name: `${ddns}-relay`,
-    addr: `:${port}`,
-    handler: { type: "tcp", chain: `${ddns}-chain` },
-    listener: { type: "tcp" },
-  });
-  if (!relayGost) throw new onFaild("创建转发服务失败", 500);
-  return true;
+  const remove = async () => {
+    const res = await _launch(`${url}/${ddns}-services`, "DELETE");
+    if (!res) throw new onFaild("删除Gost服务失败", 500);
+    return res;
+  };
+
+  const createLand = async () => {
+    const isRemove = await remove();
+    if (!isRemove) throw new onFaild("初始创建Gost落地服务失败", 500);
+    const res = await _launch(url, "POST", Gost.Land());
+    if (!res) throw new onFaild("创建Gost落地服务失败", 500);
+    return res;
+  };
+
+  const updateLand = async () => {
+    const res = await _launch(`${url}/${ddns}-services`, "PUT", Gost.Land());
+    if (!res) throw new onFaild("更新Gost落地服务失败", 500);
+    return res;
+  };
+
+  const createRelay = async () => {
+    const isRemove = await remove();
+    if (!isRemove) throw new onFaild("初始创建Gost转发服务失败", 500);
+    const res = await _launch(url, "POST", Gost.Relay());
+    if (!res) throw new onFaild("创建Gost转发服务失败", 500);
+    return res;
+  };
+
+  const updateRelay = async () => {
+    const res = await _launch(`${url}/${ddns}-services`, "PUT", Gost.Relay());
+    if (!res) throw new onFaild("更新Gost转发服务失败", 500);
+    return res;
+  };
+
+  return { createLand, updateLand, createRelay, updateRelay, remove };
 };
 
-export const DeleteGostRelay = async (params: GostRelay) => {
-  const { relay, land } = params;
-  const ddns = params.ddns.split(".")[0];
-  // 删除落地HTTP服务
-  const landGost = await _launch(`${land}/config/services/${ddns}-land`, "DELETE");
-  if (!landGost) throw new onFaild("删除落地服务失败", 500);
+export const GostChains = ({ server, key, ddns, listen }: GostParams) => {
+  const url = `${server}/${key}/config/chains`;
+  const Gost = new GostConfig(ddns, listen);
+  const remove = async () => {
+    const res = await _launch(`${url}/${ddns}-chains`, "DELETE");
+    if (!res) throw new onFaild("删除Gost转发链失败", 500);
+    return res;
+  };
 
-  // 删除中转转发链
-  const relayChain = await _launch(`${relay}/config/chains/${ddns}-chain`, "DELETE");
-  if (!relayChain) throw new onFaild("删除转发链失败", 500);
+  const create = async (land: string) => {
+    const isRemove = await remove();
+    if (!isRemove) throw new onFaild("初始创建Gost转发链失败", 500);
+    const res = await _launch(url, "POST", Gost.Chain(land));
+    if (!res) throw new onFaild("创建Gost转发链失败", 500);
+  };
 
-  // 删除转发服务
-  const relayGost = await _launch(`${relay}/config/services/${ddns}-relay`, "DELETE");
-  if (!relayGost) throw new onFaild("删除转发服务失败", 500);
+  const update = async (land: string) => {
+    console.log(JSON.stringify(Gost.Chain(land)));
 
-  return true;
+    const res = await _launch(`${url}/${ddns}-chains`, "PUT", Gost.Chain(land));
+    if (!res) throw new onFaild("更新Gost转发链失败", 500);
+    console.log(res);
+    return res;
+  };
+  return { create, remove, update };
 };

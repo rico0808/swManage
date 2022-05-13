@@ -12,6 +12,8 @@ import {
   Modal,
   Option,
   Popconfirm,
+  Radio,
+  RadioGroup,
   Row,
   Select,
   Table,
@@ -27,9 +29,11 @@ import {
   NodeDeleteNode,
   NodeDisableNode,
   NodeGetNodes,
+  NodeSwitchNodeServer,
 } from "@/api/controllers/NodeController";
 import { Nodes } from "@/api/entity/Nodes";
 import { NodesItem } from "@/api/controllers/NodeController/types";
+import { IconSwap } from "@arco-design/web-vue/es/icon";
 
 export default defineComponent(() => {
   const { dataList, pagination, loading, onChange, reload } =
@@ -37,6 +41,7 @@ export default defineComponent(() => {
 
   const serverLoading = ref(true);
 
+  const switchModel = ref(false);
   const formRef = ref();
   const formModal = ref(false);
   const formData = reactive({
@@ -46,11 +51,18 @@ export default defineComponent(() => {
     landID: null,
   });
 
-  const el = reactive({
-    relayServers: ref<Array<JSX.Element>>([]),
-    landServers: ref<Array<JSX.Element>>([]),
+  const state = reactive({
+    relayServers: ref<Array<Servers>>([]),
+    landServers: ref<Array<Servers>>([]),
+    switchServerList: ref<Array<Servers>>([]),
+    switchData: {
+      id: 0,
+      serverId: 0,
+      type: 0,
+    },
   });
 
+  // 创建节点
   const handleCreate = (done: Function) => {
     formRef.value.validate(async (errors) => {
       if (errors) return done(false);
@@ -67,6 +79,7 @@ export default defineComponent(() => {
     });
   };
 
+  // 删除节点
   const handleDelete = async (id: number) => {
     loading.value = true;
     const res = await NodeDeleteNode({ id });
@@ -77,6 +90,7 @@ export default defineComponent(() => {
     loading.value = false;
   };
 
+  // 禁用节点
   const handleDisable = async (id: number, status: number) => {
     loading.value = true;
     const res = await NodeDisableNode({ id, status: status ? 0 : 1 });
@@ -87,22 +101,54 @@ export default defineComponent(() => {
     loading.value = false;
   };
 
+  // 加载服务器列表
   const _LoadServerList = async () => {
     const res = await ServerGetServers({ pageSize: 999, current: 1 });
     if (!res) return;
-    const relayEl = [];
-    const landEl = [];
+    state.relayServers = [];
+    state.landServers = [];
     res.data.list.forEach((item) => {
-      const elOption = <Option value={item.id}>{item.name}</Option>;
       if (item.status) {
-        item.type ? landEl.push(elOption) : relayEl.push(elOption);
+        if (item.type === 0) state.relayServers.push(item);
+        if (item.type === 1) state.landServers.push(item);
       }
     });
-    el.relayServers = relayEl;
-    el.landServers = landEl;
     serverLoading.value = false;
   };
 
+  // 切换服务器
+  const handleOpenSwitchModal = async (node: NodesItem, type: number) => {
+    await _LoadServerList();
+    state.switchServerList = type ? state.landServers : state.relayServers;
+    state.switchData.id = node.id;
+    state.switchData = {
+      id: node.id,
+      serverId: type ? node.land.id : node.relay.id,
+      type,
+    };
+    switchModel.value = true;
+  };
+
+  // 切换服务器
+  const handleSwitchServer = (done: Function) => {
+    done();
+    Modal.warning({
+      title: "切换服务器",
+      content: "确认切换服务器吗？切换服务器存在5-10分钟全国DNS生效问题。",
+      onOk: async () => {
+        const res = await NodeSwitchNodeServer(state.switchData);
+        if (res) {
+          Message.success("节点切换服务器成功");
+          reload();
+          done();
+        }
+      },
+      hideCancel: false,
+      onCancel: () => (switchModel.value = true),
+    });
+  };
+
+  // 表格列
   const columns: Array<TableColumnData> = [
     { title: "ID", dataIndex: "id", ellipsis: true, width: 70 },
     { title: "DDNS", dataIndex: "ddns" },
@@ -113,6 +159,7 @@ export default defineComponent(() => {
     { title: "操作", slotName: "actions", width: 200, align: "center" },
   ];
 
+  // 表单规则
   const rules: Record<string, FieldRule<any>[]> = {
     ddns: [{ required: true, message: "请输入节点DDNS" }],
     port: [{ required: true, message: "请输入节点端口" }],
@@ -120,6 +167,7 @@ export default defineComponent(() => {
     landID: [{ required: true, message: "请输入节点落地" }],
   };
 
+  // 渲染
   const render = () => {
     const serverTag = (status: number, text: string) => {
       const _status = status ? "normal" : "danger";
@@ -148,11 +196,25 @@ export default defineComponent(() => {
             v-slots={{
               relay: ({ record }: TableSlot<NodesItem>) => {
                 const { relay } = record;
-                return serverTag(relay.status, relay.name);
+                return (
+                  <div>
+                    {serverTag(relay.status, relay.name)}{" "}
+                    <span onClick={() => handleOpenSwitchModal(record, 0)}>
+                      <IconSwap class="cursor-pointer" />
+                    </span>
+                  </div>
+                );
               },
               land: ({ record }: TableSlot<NodesItem>) => {
                 const { land } = record;
-                return serverTag(land.status, land.name);
+                return (
+                  <div>
+                    {serverTag(land.status, land.name)}
+                    <span onClick={() => handleOpenSwitchModal(record, 1)}>
+                      <IconSwap class="cursor-pointer" />
+                    </span>
+                  </div>
+                );
               },
               status: ({ record }: TableSlot<Servers>) => {
                 if (record.status === 0) return <Tag color="red">禁用</Tag>;
@@ -189,6 +251,7 @@ export default defineComponent(() => {
           v-model:visible={formModal.value}
           width={450}
           title="添加节点"
+          unmountOnClose
           onBeforeOk={handleCreate}
           onBeforeClose={() => formRef.value.resetFields()}
         >
@@ -214,7 +277,9 @@ export default defineComponent(() => {
                     placeholder="请选择"
                     loading={serverLoading.value}
                   >
-                    {el.relayServers}
+                    {state.relayServers.map((item) => (
+                      <Option value={item.id}>{item.name}</Option>
+                    ))}
                   </Select>
                 </FormItem>
               </Col>
@@ -225,12 +290,30 @@ export default defineComponent(() => {
                     placeholder="请选择"
                     loading={serverLoading.value}
                   >
-                    {el.landServers}
+                    {state.landServers.map((item) => (
+                      <Option value={item.id}>{item.name}</Option>
+                    ))}
                   </Select>
                 </FormItem>
               </Col>
             </Row>
           </Form>
+        </Modal>
+
+        <Modal
+          v-model:visible={switchModel.value}
+          width={400}
+          title="切换服务器"
+          unmountOnClose
+          onBeforeOk={handleSwitchServer}
+        >
+          <RadioGroup v-model={state.switchData.serverId} direction="vertical">
+            {state.switchServerList.map((item) => (
+              <Radio value={item.id}>
+                {item.name}【{item.ddns}】
+              </Radio>
+            ))}
+          </RadioGroup>
         </Modal>
       </div>
     );

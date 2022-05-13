@@ -10,3 +10,10 @@ const ZodBaseNodes = z.object({
 
 export const ZodCreateNode = ZodBaseNodes;
 export const ZodUpdateNode = zID.merge(ZodBaseNodes);
+
+export const ZodSwtichServer = zID.merge(
+  z.object({
+    serverId: zNumber("服务器ID"),
+    type: zNumber("节点类型"),
+  })
+);
