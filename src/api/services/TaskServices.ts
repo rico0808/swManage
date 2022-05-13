@@ -19,8 +19,6 @@ const _replaceBackupServer = async (server: Servers) => {
   if (isLand) backup = await mServer().findOneBy({ type: 1, status: 1 });
   if (!backup) return null;
 
-  console.log(nodes);
-
   const replace: Array<Nodes> = [];
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i];
