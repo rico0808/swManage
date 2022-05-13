@@ -43,6 +43,33 @@ interface GetConfigResponse {
   };
 }
 
+const kcpConfig = {
+  key: "ErNT8yXzPfWLsFuO",
+  crypt: "aes",
+  mode: "fast",
+  mtu: 1400,
+  sndwnd: 1024,
+  rcvwnd: 1024,
+  datashard: 10,
+  parityshard: 3,
+  dscp: 46,
+  nocomp: true,
+  acknodelay: false,
+  nodelay: 0,
+  interval: 50,
+  resend: 0,
+  nc: 0,
+  sockbuf: 16777217,
+  smuxbuf: 16777217,
+  streambuf: 16777217,
+  smuxver: 2,
+  keepalive: 10,
+  snmplog: "",
+  snmpperiod: 60,
+  signal: false,
+  tcp: false,
+};
+
 const request = axios.create({ timeout: 8 * 1000 });
 
 // 获取配置
@@ -92,7 +119,10 @@ export const CreateGostRelay = async (params: GostRelay) => {
     name: `${ddns}-land`,
     addr: `:${port}`,
     handler: { type: "forward" },
-    listener: { type: "tls" },
+    listener: {
+      type: "kcp",
+      metadata: { config: kcpConfig },
+    },
     forwarder: { targets: ["127.0.0.1:52333"] },
   });
   if (!landGost) throw new onFaild("创建落地服务失败", 500);
@@ -108,7 +138,7 @@ export const CreateGostRelay = async (params: GostRelay) => {
             name: "node-0",
             addr: `${land.split(":")[0]}:${port}`,
             connector: { type: "forward" },
-            dialer: { type: "tls" },
+            dialer: { type: "kcp", metadata: { config: kcpConfig } },
           },
         ],
       },

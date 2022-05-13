@@ -69,13 +69,6 @@ export const NodeCreateNode = Api(
     const isPort = await mNodes().findOneBy({ relayID: data.relayID, port: port });
     if (isPort) throw new onFaild("该转发连接端口已被使用，请更换端口");
 
-    const dnsRecord = await DDNSCreate({
-      RR: data.ddns,
-      value: relay.ddns,
-      type: "CNAME",
-    });
-    if (!dnsRecord) throw new onFaild("添加DNS记录失败，请重试");
-
     const [err] = await To(
       CreateGostRelay({
         ddns,
@@ -85,6 +78,13 @@ export const NodeCreateNode = Api(
       })
     );
     if (err) throw new onFaild(err.message, err.status);
+
+    const dnsRecord = await DDNSCreate({
+      RR: data.ddns,
+      value: relay.ddns,
+      type: "CNAME",
+    });
+    if (!dnsRecord) throw new onFaild("添加DNS记录失败，请重试");
 
     const model = new Nodes();
     _.assign(
