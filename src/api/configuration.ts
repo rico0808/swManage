@@ -32,6 +32,7 @@ export default createConfiguration({
           domain: "nsns.club",
           TTL: 60,
         },
+        ftqq: "SCT147328TDxRkRxoGRYAsCpG0kWdd5ky6",
       },
     },
   ],

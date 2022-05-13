@@ -27,6 +27,9 @@ export class Servers {
   key: string;
 
   @Column({ default: 0 })
+  catch: number;
+
+  @Column({ default: 0 })
   status: number;
 
   @Column()

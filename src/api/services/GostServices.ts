@@ -70,20 +70,7 @@ const kcpConfig = {
   tcp: false,
 };
 
-const request = axios.create({ timeout: 8 * 1000 });
-
-// 获取配置
-type GetConfig = { ddns: string; key: string };
-export const GostGetConfig = async ({
-  ddns,
-  key,
-}: GetConfig): Promise<GetConfigResponse> => {
-  const [err, res] = await To(
-    request({ url: `http://${ddns}/${key}/config`, method: "GET" })
-  );
-  if (err) return null;
-  return res.data;
-};
+const request = axios.create({ timeout: 6 * 1000 });
 
 // 发起服务
 const _launch = async (url: string, method: "POST" | "GET" | "DELETE", data = {}) => {
@@ -95,6 +82,7 @@ const _launch = async (url: string, method: "POST" | "GET" | "DELETE", data = {}
     })
   );
   if (err) {
+    if (!err.response) return null;
     const data = err.response.data || {};
     if (_.has(data, "code")) {
       const code = _.get(data, "code");
@@ -103,6 +91,13 @@ const _launch = async (url: string, method: "POST" | "GET" | "DELETE", data = {}
     return null;
   }
   return res.data;
+};
+
+// 获取配置
+export const GostGetConfig = async (server: string): Promise<GetConfigResponse> => {
+  const config = await _launch(`${server}/config`, "GET");
+  if (!config) return null;
+  return config;
 };
 
 // 创建转发
