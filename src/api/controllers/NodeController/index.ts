@@ -24,29 +24,30 @@ const Path = (code: string) => `/api/nodes/${code}`;
 export const NodeGetNodes = Api(
   Post(Path("list")),
   Validate(zPage),
-  async ({ pageSize, current }: z.infer<typeof zPage>): OnPage<Array<NodesItem>> => {
+  async ({ pageSize, current }: z.infer<typeof zPage>): OnPage<Array<Nodes>> => {
     const [list, count] = await mNodes().findAndCount({
       order: { id: "DESC" },
       take: pageSize,
       skip: (current - 1) * pageSize,
     });
 
-    const nodeList: Array<NodesItem> = [];
     for (let i = 0; i < list.length; i++) {
-      const item = list[i];
+      const node = list[i];
       const _find = (where: FindOptionsWhere<Servers>) => {
         return mServer().findOne({
           where,
-          select: { name: true, id: true, status: true },
+          select: ["id", "name", "status"],
         });
       };
-      const relay = await _find({ type: 0, id: list[i].relayID });
-      const land = await _find({ type: 1, id: list[i].landID });
-      const node = _.assign(_.omit(item, ["relayID", "landID"]), { relay, land });
-      nodeList.push(node);
+      const relay = await _find({ type: 0, id: node.relayID });
+      const land = await _find({ type: 1, id: node.landID });
+      node["relay"] = relay;
+      node["land"] = land;
+      delete node.relayID;
+      delete node.landID;
     }
 
-    return onResult({ list: nodeList, count });
+    return onResult({ list, count });
   }
 );
 
