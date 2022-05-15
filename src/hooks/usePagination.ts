@@ -1,4 +1,5 @@
-import { onMounted, reactive, ref } from "vue";
+import { debounce } from "lodash";
+import { onMounted, reactive, ref, watch } from "vue";
 
 export default function usePagination<T>(fn: Function) {
   const pagination = reactive({
@@ -8,12 +9,14 @@ export default function usePagination<T>(fn: Function) {
   });
   const loading = ref(false);
   const dataList = ref<Array<T>>([]);
+  const keyword = ref("");
 
   const reload = async () => {
     loading.value = true;
     const { data } = await fn({
       pageSize: pagination.pageSize,
       current: pagination.current,
+      keyword: keyword.value,
     });
     dataList.value = data.list;
     pagination.total = data.count;
@@ -21,6 +24,11 @@ export default function usePagination<T>(fn: Function) {
   };
 
   onMounted(async () => await reload());
+
+  watch(
+    keyword,
+    debounce(() => reload(), 500)
+  );
 
   const onChange = {
     current: async (e: number) => {
@@ -33,5 +41,5 @@ export default function usePagination<T>(fn: Function) {
     },
   };
 
-  return { onChange, dataList, pagination, loading, reload };
+  return { onChange, dataList, pagination, loading, reload, keyword };
 }

@@ -15,6 +15,7 @@ export const config: ApiConfig = {
 
 const Path = (code: string) => `/api/goods/${code}`;
 
+// 商品列表
 export const GoodsGetGoods = Api(
   Post(Path("list")),
   Validate(zPage),
@@ -34,6 +35,7 @@ export const GoodsGetGoods = Api(
   }
 );
 
+// 创建商品
 export const GoodsCreateGoods = Api(
   Post(Path("create")),
   Validate(ZodCreateGoods),
@@ -51,6 +53,7 @@ export const GoodsCreateGoods = Api(
   }
 );
 
+// 删除商品
 export const GoodsDeleteGoods = Api(
   Post(Path("delete")),
   Validate(zID),
@@ -63,6 +66,7 @@ export const GoodsDeleteGoods = Api(
   }
 );
 
+// 更新商品
 export const GoodsUpdateGoods = Api(
   Post(Path("update")),
   Validate(ZodUpdateGoods),

@@ -18,6 +18,7 @@ export const zString = (label = "文本") => {
 export const zPage = z.object({
   pageSize: zNumber("分页大小"),
   current: zNumber("分页"),
+  keyword: z.string().nullish(),
 });
 
 export const zID = z.object({
