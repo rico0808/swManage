@@ -1,9 +1,15 @@
+import TraitCard from "@/components/common/TraitCard";
 import { defineComponent } from "vue";
 
-export default defineComponent(() => {
-  const render = () => {
-    return <div>user dashboard</div>;
-  };
-
-  return render;
+export default defineComponent({
+  setup() {
+    return () => {
+      return (
+        <div>
+          user dashboard
+          <TraitCard />
+        </div>
+      );
+    };
+  },
 });

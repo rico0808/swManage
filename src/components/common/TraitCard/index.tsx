@@ -2,8 +2,6 @@ import { defineComponent } from "vue";
 
 export default defineComponent({
   setup() {
-    return () => {
-      return <div>dealer logs</div>;
-    };
+    return () => <div>11</div>;
   },
 });

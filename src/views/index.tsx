@@ -1,8 +1,9 @@
 import { defineComponent } from "vue";
 
-export default defineComponent(() => {
-  const render = () => {
-    return <div>index</div>;
-  };
-  return render;
+export default defineComponent({
+  setup() {
+    return () => {
+      return <div>index</div>;
+    };
+  },
 });

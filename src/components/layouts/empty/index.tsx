@@ -1,9 +1,8 @@
 import { defineComponent } from "vue";
 import { RouterView } from "vue-router";
 
-export default defineComponent(() => {
-  const render = () => {
+export default defineComponent({
+  setup() {
     return <RouterView />;
-  };
-  return render;
+  },
 });

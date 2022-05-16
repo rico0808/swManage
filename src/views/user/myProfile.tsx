@@ -1,9 +1,9 @@
 import { defineComponent } from "vue";
 
-export default defineComponent(() => {
-  const render = () => {
-    return <div>my profile</div>;
-  };
-
-  return render;
+export default defineComponent({
+  setup() {
+    return () => {
+      return <div>my profile</div>;
+    };
+  },
 });
