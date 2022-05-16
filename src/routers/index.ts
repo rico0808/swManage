@@ -69,27 +69,6 @@ const routes: RouteRecordRaw[] = [
             component: () => import("@/views/user/dashboard"),
           },
           {
-            name: "MyServices",
-            path: "services",
-            meta: {
-              label: "我的服务",
-              isPriavte: true,
-              showMenu: true,
-              roles: ["user", "dealer", "admin"],
-            },
-            component: () => import("@/views/user/myServices"),
-          },
-          {
-            name: "MyOrder",
-            path: "order",
-            meta: {
-              label: "我的订单",
-              isPriavte: true,
-              roles: ["user", "dealer", "admin"],
-            },
-            component: () => import("@/views/user/myOrder"),
-          },
-          {
             name: "MyProfile",
             path: "profile",
             meta: {

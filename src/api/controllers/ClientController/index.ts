@@ -127,7 +127,7 @@ export const ClientCoverGoods = Api(
       source,
       orderNo,
       amount: goods.price,
-      detail: JSON.stringify({}),
+      detail: "",
       remark: `手动补单 ${mask || ""}`,
       status: 1,
     });
