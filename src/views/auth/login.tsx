@@ -30,12 +30,8 @@ export default defineComponent({
             rules={LoginRules}
             onSubmit={handleSubmit}
           >
-            <FormItem label="登录手机" field="phone" hideAsterisk>
-              <Phone v-model={formData.phone} />
-            </FormItem>
-            <FormItem label="登录手机" field="passwd" hideAsterisk>
-              <Password v-model={formData.passwd} />
-            </FormItem>
+            <Phone v-model={formData.phone} />
+            <Password v-model={formData.passwd} />
             <div class="flex items-center justify-between -ml-1 mb-4">
               <Checkbox>记住我</Checkbox>
               <Link onClick={() => router.push({ name: "Forget" })}>找回密码</Link>

@@ -44,18 +44,10 @@ export default defineComponent({
             rules={ForgetRules}
             onSubmit={handleSubmit}
           >
-            <FormItem label="登录手机" field="phone" hideAsterisk>
-              <Phone v-model={formData.phone} />
-            </FormItem>
-            <FormItem label="验证码" field="code" hideAsterisk>
-              <PhoneCode v-model={formData.code} onSend={handleSendMsgCode} />
-            </FormItem>
-            <FormItem label="登录密码" field="passwd" hideAsterisk>
-              <Password v-model={formData.passwd} />
-            </FormItem>
-            <FormItem label="重复密码" field="repasswd" hideAsterisk>
-              <Password v-model={formData.repasswd} />
-            </FormItem>
+            <Phone v-model={formData.phone} />
+            <PhoneCode v-model={formData.code} onSend={handleSendMsgCode} />
+            <Password v-model={formData.passwd} />
+            <Password v-model={formData.repasswd} label="重复密码" field="repasswd" />
             <Button type="primary" class="!h-10 mt-4" long htmlType="submit">
               重置密码
             </Button>
