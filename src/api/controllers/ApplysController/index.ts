@@ -36,7 +36,7 @@ export const ApplyGetApplys = Api(
 );
 
 // 通过或者拒绝
-const params = zID_Status.merge(z.object({ reason: zString("理由") }));
+const params = zID_Status.merge(z.object({ reason: zString("理由").nullish() }));
 export const ApplyHandleApplys = Api(
   Post(Path("delete")),
   Validate(params),
@@ -51,7 +51,7 @@ export const ApplyHandleApplys = Api(
     }
 
     apply.status = status;
-    apply.reason = reason;
+    apply.reason = reason || "";
     const update = await mApply().save(apply);
     if (!update) throw new onFaild("操作失败，请重试", 500);
     return onResult(update);

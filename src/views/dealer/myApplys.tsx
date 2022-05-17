@@ -38,7 +38,7 @@ export default defineComponent({
 
     // 同意
     const handlePassApply = async (id) => {
-      const res = await ApplyHandleApplys({ id, status: 3, reason: "" });
+      const res = await ApplyHandleApplys({ id, status: 3 });
       if (res?.data) {
         Message.success("分销申请审核成功");
         reload();
