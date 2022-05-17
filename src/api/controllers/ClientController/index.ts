@@ -110,7 +110,7 @@ export const ClientDisableClient = Api(
 export const ClientCoverGoods = Api(
   Post(Path("cover")),
   Validate(ZodCoverGoods),
-  async (data: z.infer<typeof ZodCoverGoods>) => {
+  async (data: z.infer<typeof ZodCoverGoods>): OnResult<Sales> => {
     const { session } = useContext<Context>();
     const { clientId, goodsId, source, orderNo, mask } = data;
 
@@ -133,6 +133,6 @@ export const ClientCoverGoods = Api(
     });
     const sales = await mSales().save(model);
     if (!sales) throw new onFaild("消费记录写入失败，但补单已成功");
-    return sales;
+    return onResult(sales);
   }
 );

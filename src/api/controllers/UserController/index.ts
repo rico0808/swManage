@@ -14,6 +14,7 @@ export const config: ApiConfig = {
 
 const Path = (code: string) => `/api/users/${code}`;
 
+// 用户列表
 export const UserGetUsers = Api(
   Post(Path("list")),
   Validate(zPage),
@@ -33,6 +34,7 @@ export const UserGetUsers = Api(
   }
 );
 
+// 删除用户
 export const UserDeleteUser = Api(
   Post(Path("delete")),
   Validate(zID),
@@ -45,6 +47,7 @@ export const UserDeleteUser = Api(
   }
 );
 
+// 禁用用户
 export const UserDisableUser = Api(
   Post(Path("disable")),
   Validate(zID_Status),

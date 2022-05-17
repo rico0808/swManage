@@ -21,6 +21,7 @@ export const config: ApiConfig = {
 
 const Path = (code: string) => `/api/nodes/${code}`;
 
+// 节点列表
 export const NodeGetNodes = Api(
   Post(Path("list")),
   Validate(zPage),

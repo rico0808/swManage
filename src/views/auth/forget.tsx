@@ -1,7 +1,7 @@
 import { AuthSendCode, AuthUserForget } from "@/api/controllers/AuthController";
 import { Password, Phone, PhoneCode } from "@/components/form";
 import router from "@/routers";
-import { Button, Form, FormItem, Link, Message } from "@arco-design/web-vue";
+import { Button, Form, Link, Message } from "@arco-design/web-vue";
 import { defineComponent, reactive } from "vue";
 import { ForgetRules } from "./rules";
 
@@ -18,7 +18,7 @@ export default defineComponent({
     const handleSubmit = async ({ values, errors }) => {
       if (errors) return;
       const res = await AuthUserForget(formData);
-      if (res) {
+      if (res?.data) {
         Message.success("重置密码成功，请登录");
         router.push({ name: "Login" });
       }
@@ -28,7 +28,7 @@ export default defineComponent({
     const handleSendMsgCode = async () => {
       if (formData.phone) {
         const res = await AuthSendCode({ phone: formData.phone, type: 2 });
-        res && Message.success("发送验证码成功");
+        res?.data && Message.success("发送验证码成功");
       } else {
         Message.warning("请输入登录手机号码");
       }

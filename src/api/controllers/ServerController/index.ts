@@ -16,6 +16,7 @@ export const config: ApiConfig = {
 
 const Path = (code: string) => `/api/servers/${code}`;
 
+// 服务器列表
 export const ServerGetServers = Api(
   Post(Path("list")),
   Validate(zPage),
@@ -30,6 +31,7 @@ export const ServerGetServers = Api(
   }
 );
 
+// 创建服务器
 export const ServerCreateServer = Api(
   Post(Path("create")),
   Validate(ZodCreateServer),

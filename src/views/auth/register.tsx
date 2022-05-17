@@ -1,6 +1,6 @@
 import { AuthSendCode, AuthUserRegister } from "@/api/controllers/AuthController";
 import { Password, Phone, PhoneCode } from "@/components/form";
-import { Button, Checkbox, Form, FormItem, Link, Message } from "@arco-design/web-vue";
+import { Button, Checkbox, Form, Link, Message } from "@arco-design/web-vue";
 import { defineComponent, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { RegisterRules } from "./rules";
@@ -25,7 +25,7 @@ export default defineComponent({
       if (errors) return;
       if (checked.value) {
         const res = await AuthUserRegister(formData);
-        if (res) {
+        if (res?.data) {
           Message.success("注册成功，请登录");
           router.push({ name: "Login" });
         }
@@ -38,7 +38,7 @@ export default defineComponent({
     const handleSendMsgCode = async () => {
       if (formData.phone) {
         const res = await AuthSendCode({ phone: formData.phone, type: 1 });
-        res && Message.success("发送验证码成功");
+        res?.data && Message.success("发送验证码成功");
       } else {
         Message.warning("请输入登录手机号码");
       }

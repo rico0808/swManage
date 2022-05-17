@@ -29,6 +29,7 @@ import { defineComponent, reactive, ref } from "vue";
 import type { TableColumnData, FieldRule } from "@arco-design/web-vue";
 import { Clients } from "@/api/entity/Clients";
 import { Goods } from "@/api/entity/Goods";
+import { FormInput, FormSelect } from "@/components/form";
 
 const columns: Array<TableColumnData> = [
   { title: "ID", dataIndex: "id", ellipsis: true, width: 50 },
@@ -94,7 +95,7 @@ export default defineComponent({
     const _LoadGoodsList = async () => {
       loads.goods = true;
       const res = await GoodsGetGoods({ pageSize: 999, current: 1 });
-      if (res) state.goods = res.data.list;
+      if (res?.data) state.goods = res.data.list;
       loads.goods = false;
     };
 
@@ -103,7 +104,7 @@ export default defineComponent({
       formRef.value.validate(async (errors) => {
         if (errors) return done(false);
         const res = await ClientCreateClient(formData);
-        if (res) {
+        if (res?.data) {
           await reload();
           Message.success("添加客户成功");
           done();
@@ -116,7 +117,7 @@ export default defineComponent({
     // 禁用客户
     const handleDisableClient = async (id: number, status: number) => {
       const res = await ClientDisableClient({ id, status: status ? 0 : 1 });
-      if (res) {
+      if (res?.data) {
         reload();
         Message.success(`${status ? "禁用" : "启用"}客户成功`);
       }
@@ -125,7 +126,7 @@ export default defineComponent({
     // 删除客户
     const handleDeleteClient = async (id: number) => {
       const res = await ClientDeleteClient({ id });
-      if (res) {
+      if (res?.data) {
         reload();
         Message.success("删除客户成功");
       }
@@ -135,7 +136,7 @@ export default defineComponent({
     const onSearchUser = async (keyword: string) => {
       loads.clients = true;
       const res = await ClientGetClients({ pageSize: 20, current: 1, keyword });
-      if (res) state.coverClients = res.data.list;
+      if (res?.data) state.coverClients = res.data.list;
       loads.clients = false;
     };
 
@@ -144,7 +145,7 @@ export default defineComponent({
       coverRef.value.validate(async (errors) => {
         if (errors) return done(false);
         const res = await ClientCoverGoods(coverData);
-        if (res) {
+        if (res?.data) {
           await reload();
           Message.success("商品补单成功");
           done();
@@ -166,21 +167,34 @@ export default defineComponent({
             onBeforeClose={() => formRef.value.resetFields()}
           >
             <Form model={formData} layout="vertical" ref={formRef} rules={formRules}>
-              <FormItem label="客户来源" field="source" hideAsterisk>
-                <Select v-model={formData.source} placeholder="淘宝">
-                  <Option value="tb">淘宝</Option>
-                  <Option value="pdd">拼多多</Option>
-                </Select>
-              </FormItem>
-              <FormItem label="来源账号" field="tb" hideAsterisk>
-                <Input v-model={formData.tb} placeholder="用户淘宝或PDD账号" />
-              </FormItem>
-              <FormItem label="用户名" field="account" hideAsterisk>
-                <Input v-model={formData.account} placeholder="account" />
-              </FormItem>
-              <FormItem label="密码" field="passwd" hideAsterisk>
-                <Input v-model={formData.passwd} placeholder="password" />
-              </FormItem>
+              <FormSelect
+                v-model={formData.source}
+                label="客户来源"
+                field="source"
+                dicts={[
+                  { value: "tb", label: "淘宝" },
+                  { value: "pdd", label: "拼多多" },
+                ]}
+                placeholder="淘宝"
+              />
+              <FormInput
+                v-model={formData.tb}
+                label="来源账号"
+                field="tb"
+                placeholder="用户淘宝或PDD账号"
+              />
+              <FormInput
+                v-model={formData.account}
+                label="用户名"
+                field="account"
+                placeholder="account"
+              />
+              <FormInput
+                v-model={formData.passwd}
+                label="密码"
+                field="passwd"
+                placeholder="password"
+              />
             </Form>
           </Modal>
 
@@ -194,15 +208,22 @@ export default defineComponent({
             onBeforeClose={() => coverRef.value.resetFields()}
           >
             <Form model={coverData} layout="vertical" ref={coverRef} rules={coverRules}>
-              <FormItem label="订单来源" field="source" hideAsterisk>
-                <Select v-model={coverData.source} placeholder="淘宝">
-                  <Option value="tb">淘宝</Option>
-                  <Option value="pdd">拼多多</Option>
-                </Select>
-              </FormItem>
-              <FormItem label="订单编号" field="orderNo" hideAsterisk>
-                <Input v-model={coverData.orderNo} placeholder="请输入来源订单编号" />
-              </FormItem>
+              <FormSelect
+                v-model={coverData.source}
+                label="订单来源"
+                field="source"
+                dicts={[
+                  { value: "tb", label: "淘宝" },
+                  { value: "pdd", label: "拼多多" },
+                ]}
+                placeholder="淘宝"
+              />
+              <FormInput
+                v-model={coverData.orderNo}
+                label="订单编号"
+                field="orderNo"
+                placeholder="请输入来源订单编号"
+              />
               <FormItem label="补单客户" field="clientId" hideAsterisk>
                 <Select
                   v-model={coverData.clientId}

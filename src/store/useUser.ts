@@ -25,7 +25,7 @@ const useUserStore = defineStore("User", () => {
   // 登录
   const Login = async (formData: z.infer<typeof ZodLogin>) => {
     const res = await AuthUserLogin(formData);
-    if (!res) return;
+    if (!res?.data) return;
     profile.value = res.data;
     localStorage.setItem("isLogin", "true");
     router.push({ name: "UserDashboard" });

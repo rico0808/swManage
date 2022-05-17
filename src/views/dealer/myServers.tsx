@@ -26,6 +26,7 @@ import {
   ServerGetServers,
 } from "@/api/controllers/ServerController";
 import { Servers } from "@/api/entity/Servers";
+import { FormInput, FormInputNumber, FormSelect } from "@/components/form";
 
 const columns: Array<TableColumnData> = [
   { title: "ID", dataIndex: "id", ellipsis: true, width: 70 },
@@ -69,7 +70,7 @@ export default defineComponent({
         if (errors) return done(false);
         loading.value = true;
         const res = await ServerCreateServer(formData);
-        if (res) {
+        if (res?.data) {
           await reload();
           Message.success("添加服务器成功");
           done();
@@ -83,7 +84,7 @@ export default defineComponent({
     const handleDelete = async (id: number) => {
       loading.value = true;
       const res = await ServerDeleteServer({ id });
-      if (res) {
+      if (res?.data) {
         await reload();
         Message.success("删除服务器成功");
       }
@@ -138,17 +139,23 @@ export default defineComponent({
             <Form model={formData} layout="vertical" ref={formRef} rules={rules}>
               <Row gutter={16}>
                 <Col span={12}>
-                  <FormItem label="服务器类型" field="type" hideAsterisk>
-                    <Select v-model={formData.type}>
-                      <Option value={0}>中转</Option>
-                      <Option value={1}>落地</Option>
-                    </Select>
-                  </FormItem>
+                  <FormSelect
+                    v-model={formData.type}
+                    label="服务器类型"
+                    field="type"
+                    dicts={[
+                      { label: "中转", value: 0 },
+                      { label: "落地", value: 1 },
+                    ]}
+                  />
                 </Col>
                 <Col span={12}>
-                  <FormItem label="服务器名称" field="name" hideAsterisk>
-                    <Input v-model={formData.name} placeholder="..." />
-                  </FormItem>
+                  <FormInput
+                    v-model={formData.name}
+                    label="服务器名称"
+                    field="name"
+                    placeholder="..."
+                  />
                 </Col>
               </Row>
               <Row gutter={16}>
@@ -162,21 +169,30 @@ export default defineComponent({
                   </FormItem>
                 </Col>
                 <Col span={12}>
-                  <FormItem label="服务器IP" field="ip" hideAsterisk>
-                    <Input v-model={formData.ip} placeholder="..." />
-                  </FormItem>
+                  <FormInput
+                    v-model={formData.ip}
+                    label="服务器IP"
+                    field="ip"
+                    placeholder="..."
+                  />
                 </Col>
               </Row>
               <Row gutter={16}>
                 <Col span={12}>
-                  <FormItem label="Gost API端口" field="port" hideAsterisk>
-                    <InputNumber v-model={formData.port} placeholder="10240" hideButton />
-                  </FormItem>
+                  <FormInputNumber
+                    v-model={formData.port}
+                    label="Gost API端口"
+                    field="port"
+                    placeholder="10240"
+                  />
                 </Col>
                 <Col span={12}>
-                  <FormItem label="Gost PathPrefix" field="key" hideAsterisk>
-                    <Input v-model={formData.key} placeholder="..." />
-                  </FormItem>
+                  <FormInput
+                    v-model={formData.key}
+                    label="Gost PathPrefix"
+                    field="key"
+                    placeholder="..."
+                  />
                 </Col>
               </Row>
             </Form>

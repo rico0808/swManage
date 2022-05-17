@@ -14,6 +14,7 @@ export const config: ApiConfig = {
 
 const Path = (code: string) => `/api/sales/${code}`;
 
+// 销售列表
 export const SaleGetSales = Api(
   Post(Path("list")),
   Validate(zPage),

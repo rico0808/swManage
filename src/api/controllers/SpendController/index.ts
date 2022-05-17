@@ -14,6 +14,7 @@ export const config: ApiConfig = {
 
 const Path = (code: string) => `/api/spend/${code}`;
 
+// 收支记录
 export const SpendGetSpend = Api(
   Post(Path("list")),
   Validate(zPage),

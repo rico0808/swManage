@@ -28,7 +28,7 @@ export default defineComponent({
 
     const handleDisableUser = async (id: number, status: number) => {
       const res = await UserDisableUser({ id, status: status ? 0 : 1 });
-      if (res) {
+      if (res?.data) {
         reload();
         Message.success(`${status ? "禁用" : "启用"}用户成功`);
       }
@@ -36,7 +36,7 @@ export default defineComponent({
 
     const handleDeleteUser = async (id: number) => {
       const res = await UserDeleteUser({ id });
-      if (res) {
+      if (res?.data) {
         reload();
         Message.success("删除用户成功");
       }

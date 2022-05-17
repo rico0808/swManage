@@ -34,6 +34,7 @@ import {
 import { Nodes } from "@/api/entity/Nodes";
 import { NodesItem } from "@/api/controllers/NodeController/types";
 import { IconSwap } from "@arco-design/web-vue/es/icon";
+import { FormInput, FormInputNumber, FormSelect } from "@/components/form";
 
 // 表格列
 const columns: Array<TableColumnData> = [
@@ -88,7 +89,7 @@ export default defineComponent({
         if (errors) return done(false);
         loading.value = true;
         const res = await NodeCreateNode(formData);
-        if (res) {
+        if (res?.data) {
           await reload();
           Message.success("添加节点成功");
           done();
@@ -103,7 +104,7 @@ export default defineComponent({
     const handleDelete = async (id: number) => {
       loading.value = true;
       const res = await NodeDeleteNode({ id });
-      if (res) {
+      if (res?.data) {
         await reload();
         Message.success("删除节点成功");
       }
@@ -114,7 +115,7 @@ export default defineComponent({
     const handleDisable = async (id: number, status: number) => {
       loading.value = true;
       const res = await NodeDisableNode({ id, status: status ? 0 : 1 });
-      if (res) {
+      if (res?.data) {
         await reload();
         Message.success("操作节点成功");
       }
@@ -124,7 +125,7 @@ export default defineComponent({
     // 加载服务器列表
     const _LoadServerList = async () => {
       const res = await ServerGetServers({ pageSize: 999, current: 1 });
-      if (!res) return;
+      if (!res?.data) return;
       state.relayServers = [];
       state.landServers = [];
       res.data.list.forEach((item) => {
@@ -157,7 +158,7 @@ export default defineComponent({
         content: "确认切换服务器吗？切换服务器存在5-10分钟全国DNS生效问题。",
         onOk: async () => {
           const res = await NodeSwitchNodeServer(state.switchData);
-          if (res) {
+          if (res?.data) {
             Message.success("节点切换服务器成功");
             reload();
             done();
@@ -259,43 +260,47 @@ export default defineComponent({
             <Form model={formData} layout="vertical" ref={formRef} rules={rules}>
               <Row gutter={16}>
                 <Col span={12}>
-                  <FormItem label="DDNS" field="ddns" hideAsterisk>
-                    <Input v-model={formData.ddns} placeholder="xx.example.com" />
-                  </FormItem>
+                  <FormInput
+                    v-model={formData.ddns}
+                    label="DDNS"
+                    field="ddns"
+                    placeholder="xx.example.com"
+                  />
                 </Col>
                 <Col span={12}>
-                  <FormItem label="连接端口" field="port" hideAsterisk>
-                    <InputNumber v-model={formData.port} placeholder="58000" hideButton />
-                  </FormItem>
+                  <FormInputNumber
+                    v-model={formData.port}
+                    label="连接端口"
+                    field="port"
+                    placeholder="58000"
+                  />
                 </Col>
               </Row>
 
               <Row gutter={16}>
                 <Col span={12}>
-                  <FormItem label="中转服务器" field="relayID" hideAsterisk>
-                    <Select
-                      v-model={formData.relayID}
-                      placeholder="请选择"
-                      loading={serverLoading.value}
-                    >
-                      {state.relayServers.map((item) => (
-                        <Option value={item.id}>{item.name}</Option>
-                      ))}
-                    </Select>
-                  </FormItem>
+                  <FormSelect
+                    v-model={formData.relayID}
+                    label="中转服务器"
+                    field="relayID"
+                    dicts={state.relayServers.map(({ name, id }) => ({
+                      label: name,
+                      value: id,
+                    }))}
+                    placeholder="请选择"
+                  />
                 </Col>
                 <Col span={12}>
-                  <FormItem label="落地服务器" field="landID" hideAsterisk>
-                    <Select
-                      v-model={formData.landID}
-                      placeholder="请选择"
-                      loading={serverLoading.value}
-                    >
-                      {state.landServers.map((item) => (
-                        <Option value={item.id}>{item.name}</Option>
-                      ))}
-                    </Select>
-                  </FormItem>
+                  <FormSelect
+                    v-model={formData.relayID}
+                    label="落地服务器"
+                    field="landID"
+                    dicts={state.landServers.map(({ name, id }) => ({
+                      label: name,
+                      value: id,
+                    }))}
+                    placeholder="请选择"
+                  />
                 </Col>
               </Row>
             </Form>

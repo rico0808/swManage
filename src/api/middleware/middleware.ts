@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import _, { isNumber } from "lodash";
 import { onFaild, onResult } from "@/api/utils/tools";
 import type { Context, Session } from "@/types";
+import { mUser } from "@/api/utils/model";
 
 // 统一错误处理
 export const ErrorIntercept = async (next: Function) => {

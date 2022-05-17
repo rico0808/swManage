@@ -29,6 +29,7 @@ import _ from "lodash";
 import { storeToRefs } from "pinia";
 import { defineComponent, nextTick, reactive, ref } from "vue";
 import { Goods } from "@/api/entity/Goods";
+import { FormInput, FormSelect } from "@/components/form";
 
 const columns: Array<TableColumnData> = [
   { title: "ID", dataIndex: "id", ellipsis: true, width: 70 },
@@ -72,7 +73,7 @@ export default defineComponent({
         if (errors) return done(false);
         loading.value = true;
         const res = await GoodsCreateGoods(formData);
-        if (res) {
+        if (res?.data) {
           await reload();
           Message.success("添加商品成功");
           done();
@@ -88,7 +89,7 @@ export default defineComponent({
         if (errors) return done(false);
         loading.value = true;
         const res = await GoodsUpdateGoods(formData);
-        if (res) {
+        if (res?.data) {
           await reload();
           Message.success("编辑商品成功");
           done();
@@ -102,7 +103,7 @@ export default defineComponent({
     const handleDeleteGoods = async (id: number) => {
       loading.value = true;
       const res = await GoodsDeleteGoods({ id });
-      if (res) {
+      if (res?.data) {
         await reload();
         Message.success("删除商品成功");
       }
@@ -176,14 +177,20 @@ export default defineComponent({
             <Form model={formData} layout="vertical" ref={formRef} rules={rules}>
               <Row gutter={16}>
                 <Col span={8}>
-                  <FormItem label="商品名称" field="name" hideAsterisk>
-                    <Input v-model={formData.name} placeholder="小鱼包" />
-                  </FormItem>
+                  <FormInput
+                    v-model={formData.name}
+                    label="商品名称"
+                    field="name"
+                    placeholder="小鱼包"
+                  />
                 </Col>
                 <Col span={8}>
-                  <FormItem label="商品SKU" field="sku" hideAsterisk>
-                    <Input v-model={formData.sku} placeholder="000000" />
-                  </FormItem>
+                  <FormInput
+                    v-model={formData.sku}
+                    label="商品SKU"
+                    field="sku"
+                    placeholder="000000"
+                  />
                 </Col>
                 <Col span={8}>
                   <FormItem label="价格" field="price" hideAsterisk>
@@ -217,12 +224,15 @@ export default defineComponent({
                   </FormItem>
                 </Col>
                 <Col span={8}>
-                  <FormItem label="状态" field="status" hideAsterisk>
-                    <Select v-model={formData.status}>
-                      <Option value={1}>上架售卖</Option>
-                      <Option value={0}>下架暂停</Option>
-                    </Select>
-                  </FormItem>
+                  <FormSelect
+                    v-model={formData.status}
+                    label="状态"
+                    field="status"
+                    dicts={[
+                      { value: 1, label: "上架售卖" },
+                      { value: 0, label: "下架暂停" },
+                    ]}
+                  />
                 </Col>
               </Row>
             </Form>

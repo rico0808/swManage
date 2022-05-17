@@ -1,15 +1,14 @@
-import TraitCard from "@/components/common/TraitCard";
+import useUserStore from "@/store/useUser";
 import { defineComponent } from "vue";
+import UserDashboard from "./component/UserDashboard";
 
 export default defineComponent({
   setup() {
-    return () => {
-      return (
-        <div>
-          user dashboard
-          <TraitCard />
-        </div>
-      );
+    const { isUser, isDealer, isAdmin } = useUserStore();
+
+    const Dashboard = () => {
+      if (isUser) return <UserDashboard />;
     };
+    return () => <Dashboard />;
   },
 });

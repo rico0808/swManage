@@ -1,7 +1,7 @@
 import { Password, Phone } from "@/components/form";
 import router from "@/routers";
 import useUserStore from "@/store/useUser";
-import { Button, Checkbox, Divider, Form, FormItem, Link } from "@arco-design/web-vue";
+import { Button, Checkbox, Divider, Form, Link } from "@arco-design/web-vue";
 import { defineComponent, reactive } from "vue";
 import { LoginRules } from "./rules";
 
