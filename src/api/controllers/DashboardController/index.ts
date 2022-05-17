@@ -14,6 +14,7 @@ export const config: ApiConfig = {
 
 const Path = (code: string) => `/api/dashboard/${code}`;
 
+// 获取分销状态
 export const GetJionDealer = Api(
   Post(Path("join_status")),
   async (): OnResult<Applys> => {

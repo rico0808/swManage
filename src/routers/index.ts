@@ -163,6 +163,16 @@ const routes: RouteRecordRaw[] = [
             component: () => import("@/views/dealer/myNodes"),
           },
           {
+            name: "_Apply",
+            path: "applys",
+            meta: {
+              label: "分销申请",
+              isPriavte: true,
+              roles: ["dealer", "admin"],
+            },
+            component: () => import("@/views/dealer/myApplys"),
+          },
+          {
             name: "_Logs",
             path: "logs",
             meta: {
