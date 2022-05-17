@@ -38,7 +38,7 @@ export default defineComponent({
       reason: "",
     });
 
-    const onLoadApply = async () => {
+    const onLoadJoinDealerStatus = async () => {
       const res = await GetJionDealer();
       if (res?.data) {
         state.status = res.data.status;
@@ -58,13 +58,13 @@ export default defineComponent({
         const res = await UserJionDealer(formData);
         if (res?.data) {
           Message.success("申请加入分销成功，我们将尽快为您审核");
-          onLoadApply();
+          onLoadJoinDealerStatus();
           done(true);
         }
       });
     };
 
-    onMounted(async () => onLoadApply());
+    onMounted(async () => onLoadJoinDealerStatus());
 
     return () => (
       <div>
