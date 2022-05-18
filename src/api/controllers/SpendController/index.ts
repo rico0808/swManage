@@ -20,9 +20,9 @@ export const SpendGetSpend = Api(
   Validate(zPage),
   async ({ pageSize, current }: z.infer<typeof zPage>): OnPage<SpendLog[]> => {
     const { session } = useContext<Context>();
-    const { userId, isAdmin } = session;
+    const { userId } = session;
     const [list, count] = await mSpend().findAndCount({
-      where: { userId: isAdmin ? null : userId },
+      where: { userId },
       order: { id: "DESC" },
       take: pageSize,
       skip: (current - 1) * pageSize,
